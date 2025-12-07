@@ -1,0 +1,264 @@
+/* Google Fonts Import - MUST BE FIRST */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Minimalismo Espiritual Contemporâneo */
+  /* Navy Blue (#1e3a5f) + Dourado (#d4a574) + Branco (#ffffff) */
+  
+  --primary: #1e3a5f; /* Navy Blue */
+  --primary-foreground: #ffffff; /* White */
+  --sidebar-primary: #1e3a5f;
+  --sidebar-primary-foreground: #ffffff;
+  --chart-1: #d4a574; /* Gold */
+  --chart-2: #1e3a5f; /* Navy */
+  --chart-3: #2d5a8c; /* Lighter Navy */
+  --chart-4: #a88860; /* Darker Gold */
+  --chart-5: #0f1f35; /* Very Dark Navy */
+  
+  --radius: 0.65rem;
+  
+  /* Light theme - Clean and reverent */
+  --background: #ffffff; /* Pure white */
+  --foreground: #1e3a5f; /* Navy text */
+  --card: #f8f7f5; /* Soft off-white for cards */
+  --card-foreground: #1e3a5f;
+  --popover: #ffffff;
+  --popover-foreground: #1e3a5f;
+  --secondary: #f0ebe3; /* Very light beige */
+  --secondary-foreground: #1e3a5f;
+  --muted: #d4c4b0; /* Muted gold/beige */
+  --muted-foreground: #5a6f7f; /* Muted navy */
+  --accent: #d4a574; /* Gold accent */
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626; /* Red for errors */
+  --destructive-foreground: #ffffff;
+  --border: #e5ddd2; /* Subtle border */
+  --input: #f8f7f5;
+  --ring: #d4a574; /* Gold focus ring */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1e3a5f;
+  --sidebar-accent: #f0ebe3;
+  --sidebar-accent-foreground: #1e3a5f;
+  --sidebar-border: #e5ddd2;
+  --sidebar-ring: #d4a574;
+}
+
+.dark {
+  --primary: #1e3a5f;
+  --primary-foreground: #ffffff;
+  --sidebar-primary: #2d5a8c;
+  --sidebar-primary-foreground: #ffffff;
+  --background: #0f1f35; /* Very dark navy */
+  --foreground: #f0ebe3; /* Light beige text */
+  --card: #1a2f47; /* Dark navy card */
+  --card-foreground: #f0ebe3;
+  --popover: #1a2f47;
+  --popover-foreground: #f0ebe3;
+  --secondary: #2d5a8c; /* Lighter navy */
+  --secondary-foreground: #f0ebe3;
+  --muted: #5a6f7f; /* Muted navy */
+  --muted-foreground: #b8a89a; /* Muted beige */
+  --accent: #d4a574; /* Gold */
+  --accent-foreground: #0f1f35;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #2d5a8c;
+  --input: #1a2f47;
+  --ring: #d4a574;
+  --chart-1: #d4a574;
+  --chart-2: #2d5a8c;
+  --chart-3: #5a7fa8;
+  --chart-4: #a88860;
+  --chart-5: #8b7355;
+  --sidebar: #1a2f47;
+  --sidebar-foreground: #f0ebe3;
+  --sidebar-accent: #2d5a8c;
+  --sidebar-accent-foreground: #d4a574;
+  --sidebar-border: #2d5a8c;
+  --sidebar-ring: #d4a574;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Poppins', sans-serif;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+  
+  /* Typography System */
+  h1 {
+    @apply text-4xl font-bold text-foreground;
+    font-family: 'Playfair Display', serif;
+  }
+  
+  h2 {
+    @apply text-3xl font-bold text-foreground;
+    font-family: 'Playfair Display', serif;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold text-foreground;
+    font-family: 'Lora', serif;
+  }
+  
+  h4 {
+    @apply text-xl font-semibold text-foreground;
+    font-family: 'Lora', serif;
+  }
+  
+  h5, h6 {
+    @apply text-lg font-semibold text-foreground;
+  }
+  
+  /* Golden accent line */
+  .accent-line {
+    @apply border-t-2 border-accent;
+  }
+  
+  /* Reverent spacing */
+  .reverent-spacing {
+    @apply space-y-8;
+  }
+}
+
+@layer components {
+  /**
+   * Custom container utility that centers content and adds responsive padding.
+   *
+   * This overrides Tailwind's default container behavior to:
+   * - Auto-center content (mx-auto)
+   * - Add responsive horizontal padding
+   * - Set max-width for large screens
+   *
+   * Usage: <div className="container">...</div>
+   *
+   * For custom widths, use max-w-* utilities directly:
+   * <div className="max-w-6xl mx-auto px-4">...</div>
+   */
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem; /* 16px - mobile padding */
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem; /* 32px - desktop padding */
+      padding-right: 2rem;
+      max-width: 1280px; /* Standard content width */
+    }
+  }
+  
+  /* Minimalista form field */
+  .form-field {
+    @apply relative mb-6;
+  }
+  
+  .form-field input,
+  .form-field textarea,
+  .form-field select {
+    @apply w-full bg-transparent border-0 border-b-2 border-border px-0 py-2 text-foreground placeholder-muted-foreground focus:border-accent focus:outline-none focus:ring-0 transition-colors duration-200;
+  }
+  
+  .form-field label {
+    @apply block text-sm font-medium text-muted-foreground mb-2;
+  }
+  
+  /* Card with subtle styling */
+  .reverent-card {
+    @apply bg-card text-card-foreground rounded-lg p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+  
+  /* Section divider with golden accent */
+  .section-divider {
+    @apply my-8 flex items-center;
+  }
+  
+  .section-divider::before,
+  .section-divider::after {
+    @apply flex-1 h-px bg-border;
+    content: '';
+  }
+  
+  .section-divider::before {
+    @apply mr-4;
+  }
+  
+  .section-divider::after {
+    @apply ml-4;
+  }
+  
+  .section-divider .divider-accent {
+    @apply w-1 h-6 bg-accent rounded-full;
+  }
+}

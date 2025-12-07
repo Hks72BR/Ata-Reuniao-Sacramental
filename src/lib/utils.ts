@@ -1,0 +1,197 @@
+/**
+ * Funções utilitárias centralizadas
+ */
+
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { SacramentalRecord, FormErrors } from '@/types';
+
+/**
+ * Combina classes CSS com Tailwind
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+/**
+ * Gerar texto formatado da ata para exportação
+ */
+export function generateRecordText(record: SacramentalRecord): string {
+  let text = `ATA SACRAMENTAL\n`;
+  text += `Data: ${formatDate(record.date)}\n`;
+  text += `${'='.repeat(60)}\n\n`;
+
+  text += `PRESIDÊNCIA E DIREÇÃO\n`;
+  text += `${'-'.repeat(60)}\n`;
+  text += `Presidida por: ${record.presidedBy}\n`;
+  text += `Dirigida por: ${record.directedBy}\n`;
+  text += `Reconhecimentos: ${record.recognitions}\n`;
+  text += `Pianista: ${record.pianist}\n`;
+  text += `Regente: ${record.conductor}\n`;
+  text += `Recepcionista: ${record.receptionist}\n\n`;
+
+  text += `ANÚNCIOS\n`;
+  text += `${'-'.repeat(60)}\n`;
+  text += `${record.announcements}\n\n`;
+
+  text += `ORDEM DO SERVIÇO\n`;
+  text += `${'-'.repeat(60)}\n`;
+  text += `1º Hino: ${record.firstHymn}\n`;
+  text += `1ª Oração: ${record.firstPrayer}\n\n`;
+
+  text += `APOIO E DESOBRIGAÇÃO\n`;
+  text += `${'-'.repeat(60)}\n`;
+  record.supportAndRelease.forEach((item) => {
+    if (item.type === 'release') {
+      text += `Desobrigação: ${item.fullName} - Posição: ${item.position}\n`;
+    } else {
+      text += `Apoio: ${item.fullName} - Chamado: ${item.callingName}\n`;
+    }
+  });
+  text += `\n`;
+
+  text += `HINO SACRAMENTAL\n`;
+  text += `${'-'.repeat(60)}\n`;
+  text += `${record.sacramentalHymn}\n\n`;
+
+  text += `ORADORES\n`;
+  text += `${'-'.repeat(60)}\n`;
+  text += `1º Orador: ${record.firstSpeaker}\n`;
+  text += `2º Orador: ${record.secondSpeaker}\n`;
+  text += `Último Orador: ${record.lastSpeaker}\n\n`;
+
+  text += `HINOS E ORAÇÃO FINAL\n`;
+  text += `${'-'.repeat(60)}\n`;
+  text += `Hino Intermediário: ${record.intermediateHymn}\n`;
+  text += `Último Hino: ${record.lastHymn}\n`;
+  text += `Última Oração: ${record.lastPrayer}\n`;
+
+  return text;
+}
+
+/**
+ * Formatar data para exibição em português
+ */
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+/**
+ * Validar data no formato ISO
+ */
+export function isValidDate(dateString: string): boolean {
+  const date = new Date(dateString);
+  return date instanceof Date && !isNaN(date.getTime());
+}
+
+/**
+ * Validar se uma string contém apenas letras (com acentos)
+ */
+export function isOnlyLetters(str: string): boolean {
+  return /^[a-zA-ZáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ\s]*$/.test(str);
+}
+
+/**
+ * Validar formulário completo
+ */
+export function validateRecord(record: Partial<SacramentalRecord>): FormErrors {
+  const errors: FormErrors = {};
+
+  // Validar presidedBy (obrigatório)
+  if (!record.presidedBy?.trim()) {
+    errors.presidedBy = 'Presidência é obrigatória';
+  } else if (!isOnlyLetters(record.presidedBy)) {
+    errors.presidedBy = 'Apenas letras são permitidas';
+  }
+
+  // Validar directedBy
+  if (record.directedBy && !isOnlyLetters(record.directedBy)) {
+    errors.directedBy = 'Apenas letras são permitidas';
+  }
+
+  // Validar recognitions
+  if (record.recognitions && !isOnlyLetters(record.recognitions)) {
+    errors.recognitions = 'Apenas letras são permitidas';
+  }
+
+  // Validar pianist
+  if (record.pianist && !isOnlyLetters(record.pianist)) {
+    errors.pianist = 'Apenas letras são permitidas';
+  }
+
+  // Validar conductor
+  if (record.conductor && !isOnlyLetters(record.conductor)) {
+    errors.conductor = 'Apenas letras são permitidas';
+  }
+
+  // Validar receptionist
+  if (record.receptionist && !isOnlyLetters(record.receptionist)) {
+    errors.receptionist = 'Apenas letras são permitidas';
+  }
+
+  // Validar anúncios (máximo 1000 caracteres)
+  if (record.announcements && record.announcements.length > 1000) {
+    errors.announcements = 'Máximo de 1000 caracteres';
+  }
+
+  // Validar data
+  if (record.date && !isValidDate(record.date)) {
+    errors.date = 'Data inválida';
+  }
+
+  // Validar oradores
+  if (record.firstSpeaker && !isOnlyLetters(record.firstSpeaker)) {
+    errors.firstSpeaker = 'Apenas letras são permitidas';
+  }
+
+  if (record.secondSpeaker && !isOnlyLetters(record.secondSpeaker)) {
+    errors.secondSpeaker = 'Apenas letras são permitidas';
+  }
+
+  if (record.lastSpeaker && !isOnlyLetters(record.lastSpeaker)) {
+    errors.lastSpeaker = 'Apenas letras são permitidas';
+  }
+
+  // Validar orações
+  if (record.firstPrayer && !isOnlyLetters(record.firstPrayer)) {
+    errors.firstPrayer = 'Apenas letras são permitidas';
+  }
+
+  if (record.lastPrayer && !isOnlyLetters(record.lastPrayer)) {
+    errors.lastPrayer = 'Apenas letras são permitidas';
+  }
+
+  return errors;
+}
+
+/**
+ * Baixar arquivo de texto
+ */
+export function downloadTextFile(content: string, filename: string): void {
+  const element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+/**
+ * Gerar ID único
+ */
+export function generateId(): string {
+  return `ata-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Formatar data para nome de arquivo
+ */
+export function formatDateForFilename(dateString: string): string {
+  return dateString.replace(/\//g, '-');
+}
