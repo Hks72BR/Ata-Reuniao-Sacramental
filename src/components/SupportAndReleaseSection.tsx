@@ -13,7 +13,7 @@ interface SupportAndReleaseSectionProps {
 export function SupportAndReleaseSection({
   items,
   onItemsChange,
-  errors = {},
+  errors: _errors = {},
 }: SupportAndReleaseSectionProps) {
   const [newItem, setNewItem] = useState<Partial<SupportAndReleaseItem>>({
     type: 'release',

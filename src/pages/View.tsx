@@ -163,7 +163,7 @@ export default function View() {
           {record.supportAndRelease.length > 0 && (
             <Section title="Apoio e Desobrigação">
               <div className="space-y-3">
-                {record.supportAndRelease.map((item, index) => (
+                {record.supportAndRelease.map((item) => (
                   <div key={item.id} className="p-4 bg-secondary rounded-lg border border-border">
                     <p className="text-sm">
                       <span className="font-semibold text-accent">
