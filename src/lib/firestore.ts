@@ -15,6 +15,7 @@ import {
   orderBy,
   where,
   onSnapshot,
+  setDoc,
 } from 'firebase/firestore';
 import { db, COLLECTION_NAME } from './firebase';
 import { SacramentalRecord } from '@/types';
@@ -38,19 +39,32 @@ function convertTimestamps(data: any): any {
  */
 export async function saveRecordToCloud(record: SacramentalRecord): Promise<string> {
   try {
+    // Remover campos undefined e preparar dados
+    const cleanRecord = JSON.parse(JSON.stringify(record)); // Remove undefined
+    
     const recordData = {
-      ...record,
-      createdAt: record.createdAt || new Date().toISOString(),
+      ...cleanRecord,
+      createdAt: cleanRecord.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     if (record.id) {
-      // Atualizar existente
+      // Verificar se documento existe antes de atualizar
       const docRef = doc(db, COLLECTION_NAME, record.id);
-      await updateDoc(docRef, recordData as any);
-      return record.id;
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        // Atualizar existente
+        const { id, ...dataToUpdate } = recordData; // Remove id do update
+        await updateDoc(docRef, dataToUpdate);
+        return record.id;
+      } else {
+        // Documento não existe, criar novo com o ID
+        await setDoc(docRef, recordData);
+        return record.id;
+      }
     } else {
-      // Criar novo
+      // Criar novo sem ID específico
       const docRef = await addDoc(collection(db, COLLECTION_NAME), recordData);
       return docRef.id;
     }
@@ -120,17 +134,22 @@ export async function deleteRecordFromCloud(id: string): Promise<void> {
  */
 export async function searchRecordsByDateInCloud(dateString: string): Promise<SacramentalRecord[]> {
   try {
+    // Buscar apenas por data, sem orderBy composto (evita necessidade de índice)
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('date', '==', dateString),
-      orderBy('createdAt', 'desc')
+      where('date', '==', dateString)
     );
     const querySnapshot = await getDocs(q);
     
-    return querySnapshot.docs.map(doc => ({
+    const records = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...convertTimestamps(doc.data())
     } as SacramentalRecord));
+    
+    // Ordenar localmente
+    return records.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   } catch (error) {
     console.error('Erro ao buscar por data no Firestore:', error);
     throw error;
