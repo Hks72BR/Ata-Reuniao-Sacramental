@@ -1,15 +1,30 @@
 /**
- * IndexedDB Database Service
- * Armazena múltiplas atas sacramentais com busca e sincronização offline
+ * IndexedDB Database Service + Firebase Firestore
+ * Sincronização híbrida: Firestore (nuvem) + IndexedDB (local/backup)
  */
 
 import { SacramentalRecord } from '@/types';
+import {
+  saveRecordToCloud,
+  getAllRecordsFromCloud,
+  deleteRecordFromCloud,
+  searchRecordsByDateInCloud,
+} from './firestore';
 
 const DB_NAME = 'AtaSacramentalDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'sacramentalRecords';
 
 let db: IDBDatabase | null = null;
+let useCloud = true; // Flag para usar Firebase por padrão
+
+// Tentar detectar se Firebase está configurado
+try {
+  import('./firebase');
+} catch {
+  useCloud = false;
+  console.warn('Firebase não configurado, usando apenas IndexedDB local');
+}
 
 export async function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -48,9 +63,9 @@ export async function getDB(): Promise<IDBDatabase> {
 
 /**
  * Salvar uma nova ata ou atualizar existente
+ * Prioriza Firestore, fallback para IndexedDB
  */
 export async function saveRecord(record: SacramentalRecord): Promise<string> {
-  const database = await getDB();
   const id = record.id || generateId();
   
   const recordToSave: SacramentalRecord = {
@@ -60,17 +75,41 @@ export async function saveRecord(record: SacramentalRecord): Promise<string> {
     createdAt: record.createdAt || new Date().toISOString(),
   };
 
+  // Tentar salvar no Firestore primeiro
+  if (useCloud) {
+    try {
+      const cloudId = await saveRecordToCloud(recordToSave);
+      // Salvar cópia local como backup
+      await saveRecordLocal(recordToSave);
+      return cloudId;
+    } catch (error) {
+      console.warn('Erro ao salvar no Firestore, usando IndexedDB:', error);
+      // Se falhar, salva apenas localmente
+      return saveRecordLocal(recordToSave);
+    }
+  }
+
+  // Modo offline - salvar apenas localmente
+  return saveRecordLocal(recordToSave);
+}
+
+/**
+ * Salvar ata localmente no IndexedDB
+ */
+async function saveRecordLocal(record: SacramentalRecord): Promise<string> {
+  const database = await getDB();
+
   return new Promise((resolve, reject) => {
     const transaction = database.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
-    const request = store.put(recordToSave);
+    const request = store.put(record);
 
     request.onerror = () => {
-      reject(new Error('Erro ao salvar ata'));
+      reject(new Error('Erro ao salvar ata localmente'));
     };
 
     request.onsuccess = () => {
-      resolve(id);
+      resolve(record.id!);
     };
   });
 }
@@ -98,8 +137,33 @@ export async function getRecord(id: string): Promise<SacramentalRecord | null> {
 
 /**
  * Obter todas as atas
+ * Prioriza Firestore, fallback para IndexedDB
  */
 export async function getAllRecords(): Promise<SacramentalRecord[]> {
+  // Tentar buscar do Firestore primeiro
+  if (useCloud) {
+    try {
+      const records = await getAllRecordsFromCloud();
+      // Atualizar cache local
+      for (const record of records) {
+        await saveRecordLocal(record).catch(() => {}); // Ignora erros de cache
+      }
+      return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } catch (error) {
+      console.warn('Erro ao buscar do Firestore, usando IndexedDB:', error);
+      // Se falhar, busca localmente
+      return getAllRecordsLocal();
+    }
+  }
+
+  // Modo offline - buscar apenas localmente
+  return getAllRecordsLocal();
+}
+
+/**
+ * Obter todas as atas do IndexedDB local
+ */
+async function getAllRecordsLocal(): Promise<SacramentalRecord[]> {
   const database = await getDB();
 
   return new Promise((resolve, reject) => {
@@ -108,14 +172,12 @@ export async function getAllRecords(): Promise<SacramentalRecord[]> {
     const request = store.getAll();
 
     request.onerror = () => {
-      reject(new Error('Erro ao buscar atas'));
+      reject(new Error('Erro ao buscar atas localmente'));
     };
 
     request.onsuccess = () => {
-      // Ordenar por data decrescente
-      const records = request.result.sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
+      const records = request.result;
+      records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       resolve(records);
     };
   });
@@ -123,8 +185,28 @@ export async function getAllRecords(): Promise<SacramentalRecord[]> {
 
 /**
  * Buscar atas por data
+ * Prioriza Firestore, fallback para IndexedDB
  */
 export async function searchRecordsByDate(date: string): Promise<SacramentalRecord[]> {
+  // Tentar buscar do Firestore primeiro
+  if (useCloud) {
+    try {
+      return await searchRecordsByDateInCloud(date);
+    } catch (error) {
+      console.warn('Erro ao buscar do Firestore, usando IndexedDB:', error);
+      // Se falhar, busca localmente
+      return searchRecordsByDateLocal(date);
+    }
+  }
+
+  // Modo offline - buscar apenas localmente
+  return searchRecordsByDateLocal(date);
+}
+
+/**
+ * Buscar atas por data no IndexedDB local
+ */
+async function searchRecordsByDateLocal(date: string): Promise<SacramentalRecord[]> {
   const database = await getDB();
 
   return new Promise((resolve, reject) => {
@@ -134,7 +216,7 @@ export async function searchRecordsByDate(date: string): Promise<SacramentalReco
     const request = index.getAll(date);
 
     request.onerror = () => {
-      reject(new Error('Erro ao buscar atas por data'));
+      reject(new Error('Erro ao buscar atas por data localmente'));
     };
 
     request.onsuccess = () => {
@@ -163,8 +245,26 @@ export async function searchRecordsByDateRange(
 
 /**
  * Deletar uma ata
+ * Deleta do Firestore e do IndexedDB
  */
 export async function deleteRecord(id: string): Promise<void> {
+  // Tentar deletar do Firestore primeiro
+  if (useCloud) {
+    try {
+      await deleteRecordFromCloud(id);
+    } catch (error) {
+      console.warn('Erro ao deletar do Firestore:', error);
+    }
+  }
+
+  // Deletar localmente também
+  await deleteRecordLocal(id);
+}
+
+/**
+ * Deletar ata do IndexedDB local
+ */
+async function deleteRecordLocal(id: string): Promise<void> {
   const database = await getDB();
 
   return new Promise((resolve, reject) => {
@@ -173,7 +273,7 @@ export async function deleteRecord(id: string): Promise<void> {
     const request = store.delete(id);
 
     request.onerror = () => {
-      reject(new Error('Erro ao deletar ata'));
+      reject(new Error('Erro ao deletar ata localmente'));
     };
 
     request.onsuccess = () => {
