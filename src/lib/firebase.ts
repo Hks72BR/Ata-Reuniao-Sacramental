@@ -6,14 +6,14 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Configuração do Firebase - VOCÊ PRECISA SUBSTITUIR COM SUAS CREDENCIAIS
+// Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY_AQUI",
-  authDomain: "SEU_PROJECT_ID.firebaseapp.com",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_PROJECT_ID.appspot.com",
-  messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyBYaN3GTy8nI-wR9xa3OhFhUCDj1QVzRYY",
+  authDomain: "ata-sacramental-829c1.firebaseapp.com",
+  projectId: "ata-sacramental-829c1",
+  storageBucket: "ata-sacramental-829c1.firebasestorage.app",
+  messagingSenderId: "474847726992",
+  appId: "1:474847726992:web:425cd4cf64661ef27f7715"
 };
 
 // Inicializar Firebase
