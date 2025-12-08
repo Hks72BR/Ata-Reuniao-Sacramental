@@ -127,27 +127,43 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section com Background */}
-      <div
-        className="relative w-full h-64 bg-cover bg-center flex items-center justify-center"
-        style={{
-          backgroundImage: 'url(/images/hero-background.png)',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/40 to-primary/20"></div>
-        <div className="relative z-10 text-center">
-          <h1 className="text-5xl font-bold text-white mb-2 font-serif">Ata Sacramental</h1>
-          <p className="text-white/90 text-lg">
-            Igreja de Jesus Cristo dos Santos dos Últimos Dias
+    <div className="min-h-screen">
+      {/* Hero Section com Logo da Igreja */}
+      <div className="relative w-full bg-gradient-to-br from-[#1a3a52] via-[#1e3a5f] to-[#24466e] py-16 shadow-2xl">
+        {/* Pattern overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 30% 20%, rgba(212, 165, 116, 0.3) 0%, transparent 50%)`,
+          }}></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 text-center px-4">
+          {/* Church emblem/icon */}
+          <div className="mb-6 flex justify-center">
+            <div className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm border-2 border-[#d4a574] flex items-center justify-center shadow-xl">
+              <img 
+                src="/icon.svg" 
+                alt="Igreja SUD" 
+                className="w-16 h-16"
+              />
+            </div>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 font-playfair tracking-wide drop-shadow-lg">
+            Ata Sacramental
+          </h1>
+          <div className="h-1 w-32 bg-gradient-to-r from-transparent via-[#d4a574] to-transparent mx-auto mb-4"></div>
+          <p className="text-white/95 text-lg md:text-xl font-light tracking-wide">
+            A Igreja de Jesus Cristo dos Santos dos Últimos Dias
           </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container max-w-4xl mx-auto py-12">
+      <div className="container max-w-4xl mx-auto py-8 md:py-12 px-4">
         {/* Status Bar */}
-        <div className="mb-8 p-4 bg-card border border-border rounded-lg flex items-center justify-between">
+        <div className="mb-6 p-4 bg-white/95 backdrop-blur-sm border-2 border-[#1e3a5f]/20 rounded-xl shadow-lg flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -197,10 +213,13 @@ export default function Home() {
         </div>
 
         {/* Form Sections */}
-        <div className="reverent-spacing">
+        <div className="p-6 md:p-8 space-y-8">
           {/* Data */}
-          <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">Data</h3>
+          <div className="bg-gradient-to-br from-white to-[#f8f9fa] p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md">
+            <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
+              Data
+            </h3>
             <InputField
               type="date"
               label="Data da Reunião"

@@ -1,0 +1,25 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background matching the church logo -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a3a52;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e3a5f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#24466e;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="lightGradient" cx="50%" cy="30%">
+      <stop offset="0%" style="stop-color:#2d5a8c;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#1e3a5f;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  <rect width="1200" height="630" fill="url(#lightGradient)"/>
+  
+  <!-- Decorative arch pattern (subtle) -->
+  <path d="M 600 80 C 450 80 330 200 330 350 L 330 630 L 870 630 L 870 350 C 870 200 750 80 600 80 Z" 
+        fill="#2d5a8c" opacity="0.15"/>
+  
+  <!-- Golden accent line at top -->
+  <rect x="0" y="0" width="1200" height="4" fill="#d4a574"/>
+</svg>

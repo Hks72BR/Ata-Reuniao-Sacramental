@@ -6,6 +6,32 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    background-image: url('/bg-pattern.svg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  /* Overlay for better readability */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.97) 0%, rgba(36, 70, 110, 0.95) 100%);
+    z-index: -1;
+    pointer-events: none;
+  }
+}
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -45,8 +71,7 @@
 }
 
 :root {
-  /* Minimalismo Espiritual Contemporâneo */
-  /* Navy Blue (#1e3a5f) + Dourado (#d4a574) + Branco (#ffffff) */
+  /* Cores da Igreja SUD - Navy Blue + Dourado */
   
   --primary: #1e3a5f; /* Navy Blue */
   --primary-foreground: #ffffff; /* White */
@@ -58,18 +83,18 @@
   --chart-4: #a88860; /* Darker Gold */
   --chart-5: #0f1f35; /* Very Dark Navy */
   
-  --radius: 0.65rem;
+  --radius: 0.75rem;
   
-  /* Light theme - Clean and reverent */
-  --background: #ffffff; /* Pure white */
+  /* Theme optimized for church branding */
+  --background: rgba(255, 255, 255, 0.98); /* Almost white with slight transparency */
   --foreground: #1e3a5f; /* Navy text */
-  --card: #f8f7f5; /* Soft off-white for cards */
+  --card: rgba(255, 255, 255, 0.95); /* White cards with transparency */
   --card-foreground: #1e3a5f;
-  --popover: #ffffff;
+  --popover: rgba(255, 255, 255, 0.98);
   --popover-foreground: #1e3a5f;
-  --secondary: #f0ebe3; /* Very light beige */
+  --secondary: rgba(212, 165, 116, 0.15); /* Gold tint */
   --secondary-foreground: #1e3a5f;
-  --muted: #d4c4b0; /* Muted gold/beige */
+  --muted: rgba(93, 111, 127, 0.2); /* Subtle navy tint */
   --muted-foreground: #5a6f7f; /* Muted navy */
   --accent: #d4a574; /* Gold accent */
   --accent-foreground: #ffffff;
