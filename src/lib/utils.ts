@@ -195,3 +195,54 @@ export function generateId(): string {
 export function formatDateForFilename(dateString: string): string {
   return dateString.replace(/\//g, '-');
 }
+
+/**
+ * Gerar PDF a partir de elemento HTML
+ * @param element - Elemento HTML a ser convertido
+ * @param filename - Nome do arquivo PDF
+ */
+export async function generatePDF(element: HTMLElement, filename: string): Promise<void> {
+  // Importação dinâmica para evitar problemas de SSR
+  const html2pdf = (await import('html2pdf.js')).default;
+  
+  // Obter dimensões do conteúdo
+  const contentHeight = element.scrollHeight;
+  const contentWidth = element.scrollWidth;
+  
+  // Calcular proporções para ajustar à página
+  const a4WidthMM = 210;
+  const a4HeightMM = 297;
+  const margin = 10;
+  const availableWidth = a4WidthMM - (margin * 2);
+  
+  // Calcular altura necessária mantendo proporção
+  const scale = availableWidth / (contentWidth * 0.264583); // Converter px para mm
+  const calculatedHeight = (contentHeight * 0.264583 * scale) + (margin * 2);
+  
+  const opt = {
+    margin: [margin, margin, margin, margin] as [number, number, number, number],
+    filename: filename,
+    image: { type: 'jpeg' as const, quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      letterRendering: true,
+      scrollY: 0,
+      scrollX: 0,
+    },
+    jsPDF: { 
+      unit: 'mm' as const, 
+      format: [a4WidthMM, Math.max(calculatedHeight, a4HeightMM)] as [number, number], 
+      orientation: 'portrait' as const
+    },
+    pagebreak: { mode: 'avoid-all' as const }
+  };
+
+  try {
+    await html2pdf().set(opt).from(element).save();
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    throw new Error('Falha ao gerar PDF');
+  }
+}

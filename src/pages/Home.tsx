@@ -71,10 +71,26 @@ export default function Home() {
   };
 
   const handleSave = async () => {
+    // Verificar se há alguma informação preenchida
+    const hasAnyData = record.presidedBy?.trim() || 
+                       record.directedBy?.trim() || 
+                       record.date?.trim() ||
+                       record.firstHymn?.trim() ||
+                       record.firstSpeaker?.trim();
+    
+    if (!hasAnyData) {
+      toast.error('⚠️ Favor completar a ATA para depois salvar', {
+        duration: 3000,
+      });
+      return;
+    }
+
     const validationErrors = validateRecord(record);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      toast.error('Por favor, corrija os erros no formulário');
+      toast.error('⚠️ Por favor, corrija os erros no formulário', {
+        duration: 3000,
+      });
       return;
     }
 
@@ -92,24 +108,44 @@ export default function Home() {
       localStorage.setItem('sacramentalRecord', JSON.stringify(updatedRecord));
       
       setRecord({ ...updatedRecord, id });
-      toast.success('Ata sacramental salva com sucesso!');
+      toast.success('✅ ATA SALVA COM SUCESSO, FAVOR CONSULTAR HISTÓRICO', {
+        duration: 2000,
+      });
     } catch (error) {
-      toast.error('Erro ao salvar ata');
+      toast.error('❌ Erro ao salvar ata');
       console.error(error);
     }
   };
 
   const handleDownloadPDF = () => {
+    // Verificar se há alguma informação preenchida
+    const hasAnyData = record.presidedBy?.trim() || 
+                       record.directedBy?.trim() || 
+                       record.date?.trim() ||
+                       record.firstHymn?.trim() ||
+                       record.firstSpeaker?.trim();
+    
+    if (!hasAnyData) {
+      toast.error('⚠️ Favor completar a ATA para depois baixar', {
+        duration: 3000,
+      });
+      return;
+    }
+
     const validationErrors = validateRecord(record);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      toast.error('Por favor, corrija os erros no formulário');
+      toast.error('⚠️ Por favor, corrija os erros no formulário', {
+        duration: 3000,
+      });
       return;
     }
 
     const content = generateRecordText(record);
     downloadTextFile(content, `ata-sacramental-${record.date}.txt`);
-    toast.success('Ata sacramental baixada com sucesso!');
+    toast.success('✅ Download feito com sucesso', {
+      duration: 2000,
+    });
   };
 
   const handleNewRecord = () => {
@@ -181,31 +217,28 @@ export default function Home() {
         <div className="flex gap-4 mb-8 flex-wrap">
           <Button
             onClick={handleSave}
-            className="bg-accent text-accent-foreground hover:bg-accent/90 flex items-center gap-2"
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <Save size={18} />
             Salvar
           </Button>
           <Button
             onClick={handleDownloadPDF}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <Download size={18} />
             Baixar
           </Button>
           <Button
             onClick={handleViewHistory}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <History size={18} />
             Histórico
           </Button>
           <Button
             onClick={handleNewRecord}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <Plus size={18} />
             Nova Ata
@@ -399,23 +432,21 @@ export default function Home() {
           <div className="flex gap-4 flex-wrap">
             <Button
               onClick={handleSave}
-              className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90 flex items-center justify-center gap-2"
+              className="flex-1 min-w-[180px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center justify-center gap-2"
             >
               <Save size={18} />
               Salvar Ata
             </Button>
             <Button
               onClick={handleDownloadPDF}
-              variant="outline"
-              className="flex-1 flex items-center justify-center gap-2"
+              className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center justify-center gap-2"
             >
               <Download size={18} />
               Baixar Ata
             </Button>
             <Button
               onClick={handleViewHistory}
-              variant="outline"
-              className="flex-1 flex items-center justify-center gap-2"
+              className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center justify-center gap-2"
             >
               <History size={18} />
               Ver Histórico

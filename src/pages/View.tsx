@@ -3,17 +3,19 @@
  * Design: Minimalismo Espiritual Contemporâneo
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { SacramentalRecord } from '@/types';
 import { ArrowLeft, Download, Edit2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
-import { formatDate, generateRecordText, downloadTextFile } from '@/lib/utils';
+import { formatDate, generatePDF } from '@/lib/utils';
 
 export default function View() {
   const [record, setRecord] = useState<SacramentalRecord | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [, setLocation] = useLocation();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Recuperar registro de sessionStorage
@@ -32,16 +34,28 @@ export default function View() {
 
   if (!record) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Carregando...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-[#f8f5f0] flex items-center justify-center">
+        <p className="text-[#1e3a5f] font-['Poppins']">Carregando...</p>
       </div>
     );
   }
 
-  const handleDownload = () => {
-    const content = generateRecordText(record);
-    downloadTextFile(content, `ata-sacramental-${record.date}.txt`);
-    toast.success('Ata baixada com sucesso');
+  const handleDownload = async () => {
+    if (!contentRef.current || isGeneratingPDF) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const filename = `ata-sacramental-${record.date.replace(/\//g, '-')}.pdf`;
+      await generatePDF(contentRef.current, filename);
+      toast.success('✅ Download feito com sucesso', {
+        duration: 2000,
+      });
+    } catch (error) {
+      toast.error('❌ Erro ao gerar PDF');
+      console.error(error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleEdit = () => {
@@ -52,76 +66,71 @@ export default function View() {
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="mb-8">
-      <h3 className="text-xl font-bold text-foreground mb-4 font-serif border-b-2 border-accent pb-2">
+      <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-['Poppins'] border-b-2 border-[#d4a574] pb-2">
         {title}
       </h3>
-      <div className="text-foreground space-y-2">{children}</div>
+      <div className="text-[#1e3a5f] space-y-2">{children}</div>
     </div>
   );
 
   const Field = ({ label, value }: { label: string; value: string }) => (
     <div>
-      <p className="text-sm font-semibold text-muted-foreground">{label}</p>
-      <p className="text-foreground">{value || '—'}</p>
+      <p className="text-sm font-semibold text-[#1e3a5f]/70 font-['Poppins']">{label}</p>
+      <p className="text-[#1e3a5f] font-['Poppins']">{value || '—'}</p>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="container max-w-4xl mx-auto py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-[#f8f5f0]">
+      {/* Header com branding da igreja */}
+      <div className="bg-gradient-to-r from-[#1a3a52] via-[#1e3a5f] to-[#24466e] shadow-xl sticky top-0 z-10">
+        <div className="container max-w-4xl mx-auto py-4 px-4 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <Button
               onClick={() => setLocation('/history')}
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-2"
+              className="bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
             >
               <ArrowLeft size={18} />
               Voltar
             </Button>
-            <h1 className="text-2xl font-bold text-foreground font-serif">Visualizar Ata</h1>
+            <h1 className="text-2xl font-bold text-white font-['Playfair_Display']">Visualizar Ata</h1>
           </div>
           <div className="flex gap-2">
             <Button
               onClick={handleEdit}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
+              className="bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
             >
               <Edit2 size={16} />
               Editar
             </Button>
             <Button
               onClick={handleDownload}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
+              disabled={isGeneratingPDF}
+              className="bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download size={16} />
-              Baixar
+              {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}
             </Button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container max-w-4xl mx-auto py-12">
-        <div className="bg-card border border-border rounded-lg p-8">
+      <div className="container max-w-4xl mx-auto py-12 px-4">
+        <div ref={contentRef} className="bg-white border-l-4 border-[#d4a574] rounded-lg p-8 shadow-md">
           {/* Título e Data */}
-          <div className="text-center mb-12 pb-8 border-b border-border">
-            <h2 className="text-4xl font-bold text-foreground font-serif mb-4">
+          <div className="text-center mb-12 pb-8 border-b-2 border-[#d4a574]">
+            <h2 className="text-4xl font-bold text-[#1e3a5f] font-['Playfair_Display'] mb-4">
               Ata Sacramental
             </h2>
-            <p className="text-xl text-muted-foreground">{formatDate(record.date)}</p>
+            <p className="text-xl text-[#1e3a5f]/80 font-['Poppins']">{formatDate(record.date)}</p>
             <span
-              className={`inline-block mt-4 text-xs px-3 py-1 rounded-full ${
+              className={`inline-block mt-4 text-xs px-3 py-1 rounded-full font-semibold ${
                 record.status === 'completed'
-                  ? 'bg-green-100 text-green-800'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
                   : record.status === 'draft'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-gray-100 text-gray-800'
+                  ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                  : 'bg-gray-50 text-gray-700 border border-gray-200'
               }`}
             >
               {record.status === 'completed'
@@ -164,9 +173,9 @@ export default function View() {
             <Section title="Apoio e Desobrigação">
               <div className="space-y-3">
                 {record.supportAndRelease.map((item) => (
-                  <div key={item.id} className="p-4 bg-secondary rounded-lg border border-border">
-                    <p className="text-sm">
-                      <span className="font-semibold text-accent">
+                  <div key={item.id} className="p-4 bg-gradient-to-br from-[#1e3a5f]/5 to-[#d4a574]/5 rounded-lg border border-[#d4a574]/20">
+                    <p className="text-sm font-['Poppins']">
+                      <span className="font-semibold text-[#d4a574]">
                         {item.type === 'release' ? 'Desobrigação' : 'Apoio'}:
                       </span>{' '}
                       <span className="font-semibold">{item.fullName}</span>
@@ -207,26 +216,32 @@ export default function View() {
           </Section>
 
           {/* Metadados */}
-          <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+          <div className="mt-12 pt-8 border-t-2 border-[#d4a574] text-center text-sm text-[#1e3a5f]/70 font-['Poppins']">
             <p>Criada em: {new Date(record.createdAt).toLocaleString('pt-BR')}</p>
             <p>Última atualização: {new Date(record.updatedAt).toLocaleString('pt-BR')}</p>
           </div>
         </div>
 
         {/* Botões de Ação */}
-        <div className="flex gap-4 mt-8 justify-center">
-          <Button onClick={handleEdit} className="flex items-center gap-2">
+        <div className="flex gap-4 mt-8 justify-center flex-wrap">
+          <Button 
+            onClick={handleEdit} 
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+          >
             <Edit2 size={18} />
             Editar Ata
           </Button>
-          <Button onClick={handleDownload} variant="outline" className="flex items-center gap-2">
+          <Button 
+            onClick={handleDownload}
+            disabled={isGeneratingPDF}
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Download size={18} />
-            Baixar Ata
+            {isGeneratingPDF ? 'Gerando PDF...' : 'Baixar PDF'}
           </Button>
           <Button
             onClick={() => setLocation('/history')}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <ArrowLeft size={18} />
             Voltar ao Histórico
