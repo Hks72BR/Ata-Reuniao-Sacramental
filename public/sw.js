@@ -66,10 +66,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache bem-sucedidas
-          if (response.status === 200) {
-            const cache = caches.open(RUNTIME_CACHE);
-            cache.then((c) => c.put(request, response.clone()));
+          // Verificar se a resposta é válida antes de clonar
+          if (response && response.status === 200 && response.type === 'basic') {
+            // Clonar ANTES de retornar
+            const responseToCache = response.clone();
+            
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseToCache);
+            });
           }
           return response;
         })
