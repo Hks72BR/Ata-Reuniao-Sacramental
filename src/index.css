@@ -250,9 +250,9 @@
     @apply border-red-500 focus:ring-red-500/20;
   }
   
-  /* Card with subtle styling */
+  /* Seção de card com fundo branco */
   .reverent-card {
-    @apply bg-card text-card-foreground rounded-lg p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply bg-white text-[#1e3a5f] rounded-xl p-6 border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow duration-300;
   }
   
   /* Section divider with golden accent */

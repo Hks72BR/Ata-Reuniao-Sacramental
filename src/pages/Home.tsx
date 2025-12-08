@@ -215,7 +215,7 @@ export default function Home() {
         {/* Form Sections */}
         <div className="p-6 md:p-8 space-y-8">
           {/* Data */}
-          <div className="bg-gradient-to-br from-white to-[#f8f9fa] p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md">
+          <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md">
             <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
               <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Data
@@ -232,7 +232,8 @@ export default function Home() {
 
           {/* Presidência e Direção */}
           <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+            <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Presidência e Direção
             </h3>
             <InputField
@@ -283,7 +284,10 @@ export default function Home() {
 
           {/* Anúncios */}
           <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">Anúncios</h3>
+            <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
+              Anúncios
+            </h3>
             <TextAreaField
               label="Anúncios"
               value={record.announcements}
@@ -298,7 +302,8 @@ export default function Home() {
 
           {/* Primeiro Hino e Oração */}
           <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+            <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Abertura
             </h3>
             <InputField
