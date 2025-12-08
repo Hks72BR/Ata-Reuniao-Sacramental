@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="#1e3a5f"/>
+  
+  <!-- Decorative arch -->
+  <path d="M 256 80 C 180 80 120 140 120 216 L 120 432 L 392 432 L 392 216 C 392 140 332 80 256 80 Z" fill="#2d5a8c" opacity="0.3"/>
+  
+  <!-- Book/Document icon -->
+  <rect x="160" y="140" width="192" height="240" rx="12" fill="white" opacity="0.95"/>
+  
+  <!-- Lines representing text -->
+  <line x1="190" y1="180" x2="322" y2="180" stroke="#1e3a5f" stroke-width="8" stroke-linecap="round"/>
+  <line x1="190" y1="210" x2="322" y2="210" stroke="#1e3a5f" stroke-width="8" stroke-linecap="round"/>
+  <line x1="190" y1="240" x2="280" y2="240" stroke="#1e3a5f" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Decorative line -->
+  <line x1="160" y1="280" x2="352" y2="280" stroke="#d4a574" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- More text lines -->
+  <line x1="190" y1="310" x2="322" y2="310" stroke="#1e3a5f" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  <line x1="190" y1="335" x2="322" y2="335" stroke="#1e3a5f" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  <line x1="190" y1="360" x2="260" y2="360" stroke="#1e3a5f" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  
+  <!-- Golden accent -->
+  <circle cx="256" cy="100" r="8" fill="#d4a574"/>
+</svg>

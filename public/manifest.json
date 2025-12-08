@@ -1,20 +1,35 @@
 {
-  "name": "Ata Sacramental",
+  "name": "Ata Sacramental - Igreja SUD",
   "short_name": "Ata SUD",
-  "description": "Aplicativo para registro de atas sacramentais",
+  "description": "Aplicativo para registro de atas de reuniões sacramentais da Igreja de Jesus Cristo dos Santos dos Últimos Dias",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#1e3a5f",
   "theme_color": "#1e3a5f",
+  "orientation": "portrait",
+  "orientation": "portrait",
   "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png"
     }
   ]
