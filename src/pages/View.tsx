@@ -192,6 +192,89 @@ export default function View() {
             </Section>
           )}
 
+          {/* Ordenanças */}
+          {record.ordinances && record.ordinances.length > 0 && (
+            <Section title="Ordenanças">
+              <div className="space-y-3">
+                {record.ordinances.map((item) => (
+                  <div key={item.id} className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <p className="text-sm font-['Poppins'] mb-2">
+                      <span className="font-semibold text-blue-600">
+                        {item.type === 'confirmation' ? '✓ Confirmação de Batismo' : '✦ Apresentação de Criança'}:
+                      </span>{' '}
+                      <span className="font-semibold">{item.fullName}</span>
+                    </p>
+                    {item.performedBy && (
+                      <p className="text-xs text-[#1e3a5f]/70">
+                        <span className="font-semibold">Realizado por:</span> {item.performedBy}
+                      </p>
+                    )}
+                    {item.notes && (
+                      <p className="text-xs text-[#1e3a5f]/70 mt-1">
+                        <span className="font-semibold">Obs:</span> {item.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Designações de Chamados */}
+          {record.callingDesignations && record.callingDesignations.length > 0 && (
+            <Section title="Designações de Chamados">
+              <div className="space-y-3">
+                {record.callingDesignations.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className={`p-4 rounded-lg border-2 ${
+                      item.designatedBy && item.designationDate
+                        ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300'
+                        : 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="text-sm font-['Poppins']">
+                        <span className="font-bold text-[#1e3a5f]">{item.fullName}</span>
+                        <br />
+                        <span className="text-xs text-[#1e3a5f]/70">
+                          <span className="font-semibold">Chamado:</span> {item.callingName}
+                        </span>
+                      </p>
+                      {item.designatedBy && item.designationDate ? (
+                        <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded">
+                          Designado
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-yellow-600 text-white text-xs font-semibold rounded">
+                          Pendente
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#1e3a5f]/60 mb-2">
+                      <span className="font-semibold">Apoiado em:</span> {new Date(item.supportedDate).toLocaleDateString('pt-BR')}
+                    </p>
+                    {item.designatedBy && (
+                      <p className="text-xs text-[#1e3a5f]/70">
+                        <span className="font-semibold">Designado por:</span> {item.designatedBy}
+                      </p>
+                    )}
+                    {item.designationDate && (
+                      <p className="text-xs text-[#1e3a5f]/70">
+                        <span className="font-semibold">Data da designação:</span> {new Date(item.designationDate).toLocaleDateString('pt-BR')}
+                      </p>
+                    )}
+                    {item.notes && (
+                      <p className="text-xs text-[#1e3a5f]/70 mt-1">
+                        <span className="font-semibold">Obs:</span> {item.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
           {/* Hino Sacramental */}
           <Section title="Hino Sacramental">
             <Field label="Hino Sacramental" value={record.sacramentalHymn} />

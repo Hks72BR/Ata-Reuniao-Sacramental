@@ -66,6 +66,44 @@ export function generateRecordText(record: SacramentalRecord): string {
   });
   text += `\n`;
 
+  // Ordenanças
+  if (record.ordinances && record.ordinances.length > 0) {
+    text += `ORDENANÇAS\n`;
+    text += `${'-'.repeat(60)}\n`;
+    record.ordinances.forEach((item) => {
+      const type = item.type === 'confirmation' ? 'Confirmação de Batismo' : 'Apresentação de Criança';
+      text += `${type}: ${item.fullName}\n`;
+      if (item.performedBy) {
+        text += `  Realizado por: ${item.performedBy}\n`;
+      }
+      if (item.notes) {
+        text += `  Obs: ${item.notes}\n`;
+      }
+    });
+    text += `\n`;
+  }
+
+  // Designações de Chamados
+  if (record.callingDesignations && record.callingDesignations.length > 0) {
+    text += `DESIGNAÇÕES DE CHAMADOS\n`;
+    text += `${'-'.repeat(60)}\n`;
+    record.callingDesignations.forEach((item) => {
+      text += `${item.fullName} - ${item.callingName}\n`;
+      text += `  Apoiado em: ${new Date(item.supportedDate).toLocaleDateString('pt-BR')}\n`;
+      if (item.designatedBy) {
+        text += `  Designado por: ${item.designatedBy}\n`;
+      }
+      if (item.designationDate) {
+        text += `  Data da designação: ${new Date(item.designationDate).toLocaleDateString('pt-BR')}\n`;
+      }
+      if (item.notes) {
+        text += `  Obs: ${item.notes}\n`;
+      }
+      text += `  Status: ${item.designatedBy && item.designationDate ? 'DESIGNADO' : 'PENDENTE'}\n`;
+    });
+    text += `\n`;
+  }
+
   text += `HINO SACRAMENTAL\n`;
   text += `${'-'.repeat(60)}\n`;
   text += `${record.sacramentalHymn}\n\n`;

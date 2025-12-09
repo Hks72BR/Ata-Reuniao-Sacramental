@@ -9,7 +9,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { SupportAndReleaseSection } from '@/components/SupportAndReleaseSection';
-import { SacramentalRecord, SupportAndReleaseItem, SACRAMENTAL_RECORD_INITIAL } from '@/types';
+import { OrdinancesSection } from '@/components/OrdinancesSection';
+import { CallingDesignationsSection } from '@/components/CallingDesignationsSection';
+import { SacramentalRecord, SupportAndReleaseItem, OrdinanceItem, CallingDesignationItem, SACRAMENTAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History } from 'lucide-react';
 import { toast } from 'sonner';
 import { saveRecord, initDB } from '@/lib/db';
@@ -86,6 +88,20 @@ export default function Home() {
     setRecord((prev) => ({
       ...prev,
       supportAndRelease: items,
+    }));
+  };
+
+  const handleOrdinancesChange = (items: OrdinanceItem[]) => {
+    setRecord((prev) => ({
+      ...prev,
+      ordinances: items,
+    }));
+  };
+
+  const handleCallingDesignationsChange = (items: CallingDesignationItem[]) => {
+    setRecord((prev) => ({
+      ...prev,
+      callingDesignations: items,
     }));
   };
 
@@ -377,6 +393,22 @@ export default function Home() {
           <SupportAndReleaseSection
             items={record.supportAndRelease}
             onItemsChange={handleSupportAndReleaseChange}
+            errors={errors}
+          />
+
+          {/* Ordenanças */}
+          <OrdinancesSection
+            items={record.ordinances || []}
+            onItemsChange={handleOrdinancesChange}
+            errors={errors}
+          />
+
+          {/* Designações de Chamados */}
+          <CallingDesignationsSection
+            items={record.callingDesignations || []}
+            onItemsChange={handleCallingDesignationsChange}
+            supportAndReleaseItems={record.supportAndRelease}
+            meetingDate={record.date}
             errors={errors}
           />
 

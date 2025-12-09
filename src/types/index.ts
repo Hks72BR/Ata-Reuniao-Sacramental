@@ -26,6 +26,12 @@ export interface SacramentalRecord {
   // Apoio e Desobrigação
   supportAndRelease: SupportAndReleaseItem[];
   
+  // Ordenanças (confirmações, apresentações)
+  ordinances: OrdinanceItem[];
+  
+  // Designações de Chamados
+  callingDesignations: CallingDesignationItem[];
+  
   // Hino Sacramental
   sacramentalHymn: string;
   
@@ -61,6 +67,24 @@ export interface SupportAndReleaseItem {
   notes?: string;
 }
 
+export interface OrdinanceItem {
+  id: string;
+  type: 'confirmation' | 'child-blessing'; // confirmação ou apresentação de criança
+  fullName: string;
+  performedBy?: string; // Quem realizou a ordenança
+  notes?: string;
+}
+
+export interface CallingDesignationItem {
+  id: string;
+  fullName: string;
+  callingName: string;
+  supportedDate: string; // Data que foi apoiado (data da ata)
+  designatedBy?: string; // Quem designou
+  designationDate?: string; // Data da designação
+  notes?: string;
+}
+
 export interface FormErrors {
   [key: string]: string;
 }
@@ -77,6 +101,8 @@ export const SACRAMENTAL_RECORD_INITIAL: Partial<SacramentalRecord> = {
   firstHymn: '',
   firstPrayer: '',
   supportAndRelease: [],
+  ordinances: [],
+  callingDesignations: [],
   sacramentalHymn: '',
   firstSpeaker: '',
   secondSpeaker: '',
