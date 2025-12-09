@@ -18,7 +18,7 @@ import { saveRecord, initDB } from '@/lib/db';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
 import { validateRecord, generateRecordText, downloadTextFile, isFirstSunday } from '@/lib/utils';
-import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
+import { isAuthenticated, logout, AUTH_CONFIG } from '@/lib/auth';
 
 export default function Home() {
   const [record, setRecord] = useState<SacramentalRecord>(SACRAMENTAL_RECORD_INITIAL as SacramentalRecord);
@@ -204,6 +204,11 @@ export default function Home() {
     setLocation('/sacramental/history');
   };
 
+  const handleBackToMenu = () => {
+    logout(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY);
+    setLocation('/');
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section com Logo da Igreja */}
@@ -258,7 +263,7 @@ export default function Home() {
         {/* Action Buttons */}
         <div className="flex gap-4 mb-8 flex-wrap">
           <Button
-            onClick={() => setLocation('/')}
+            onClick={handleBackToMenu}
             className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <History size={18} />

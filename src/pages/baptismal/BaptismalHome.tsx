@@ -12,7 +12,7 @@ import { Download, Save, Plus, History, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
-import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
+import { isAuthenticated, logout, AUTH_CONFIG } from '@/lib/auth';
 
 export default function BaptismalHome() {
   const [record, setRecord] = useState<BaptismalRecord>(BAPTISMAL_RECORD_INITIAL as BaptismalRecord);
@@ -132,7 +132,10 @@ export default function BaptismalHome() {
         {/* Action Buttons */}
         <div className="flex gap-4 mb-8 flex-wrap">
           <Button
-            onClick={() => setLocation('/')}
+            onClick={() => {
+              logout(AUTH_CONFIG.BAPTISMAL_SESSION_KEY);
+              setLocation('/');
+            }}
             className="flex-1 min-w-[180px] bg-white border-2 border-[#1e8b9f] text-[#1e8b9f] hover:bg-[#1e8b9f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <ArrowLeft size={18} />
