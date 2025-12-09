@@ -418,6 +418,17 @@ export default function BaptismalHome() {
               placeholder="Pessoa que fará a oração"
             />
           </div>
+
+          {/* Botão Salvar Final */}
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={handleSave}
+              className="min-w-[280px] bg-white border-2 border-[#16a085] text-[#1e8b9f] hover:bg-[#16a085] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center py-6 text-lg"
+            >
+              <Save size={20} />
+              Salvar Ata Batismal
+            </Button>
+          </div>
         </div>
       </div>
     </div>
