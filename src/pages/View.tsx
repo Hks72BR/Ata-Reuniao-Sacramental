@@ -61,7 +61,7 @@ export default function View() {
   const handleEdit = () => {
     // Salvar registro em localStorage para edição
     localStorage.setItem('sacramentalRecord', JSON.stringify(record));
-    setLocation('/');
+    setLocation('/sacramental');
   };
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (

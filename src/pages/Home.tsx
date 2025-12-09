@@ -194,7 +194,7 @@ export default function Home() {
   };
 
   const handleViewHistory = () => {
-    setLocation('/history');
+    setLocation('/sacramental/history');
   };
 
   return (

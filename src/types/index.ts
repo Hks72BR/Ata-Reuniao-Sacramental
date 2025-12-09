@@ -85,6 +85,55 @@ export interface CallingDesignationItem {
   notes?: string;
 }
 
+// ============================================
+// TIPOS PARA ATA BATISMAL
+// ============================================
+
+export interface BaptismalRecord {
+  id?: string;
+  date: string; // ISO date format
+  
+  // Presidência e Direção
+  presidedBy: string;
+  directedBy: string;
+  pianist: string;
+  conductor: string;
+  
+  // Abertura
+  openingHymn: string;
+  openingPrayer: string;
+  
+  // Programa
+  testimony: string; // Testemunho
+  message: string; // Mensagem
+  specialPresentation?: string; // Apresentação especial (opcional)
+  
+  // Parte Batismal
+  baptismLocation: 'same-room' | 'baptism-room'; // Se está na sacramental ou sala separada
+  personBeingBaptized: string; // Nome completo da pessoa batizada
+  personPerformingBaptism: string; // Quem realiza a ordenança
+  witnesses: string[]; // Testemunhas do batismo (array de nomes)
+  
+  // Boas Vindas
+  welcomeOrganizations: WelcomeOrganizationItem[]; // Boas vindas das organizações
+  
+  // Encerramento
+  closingHymn: string;
+  closingPrayer: string;
+  
+  // Metadados
+  createdAt: string;
+  updatedAt: string;
+  status: 'draft' | 'completed' | 'archived';
+}
+
+export interface WelcomeOrganizationItem {
+  id: string;
+  organizationName: string; // Ex: "Presidência das Moças", "Presidência dos Rapazes"
+  welcomeGivenBy: string; // Nome de quem deu as boas vindas
+  notes?: string;
+}
+
 export interface FormErrors {
   [key: string]: string;
 }
@@ -110,6 +159,27 @@ export const SACRAMENTAL_RECORD_INITIAL: Partial<SacramentalRecord> = {
   lastSpeaker: '',
   lastHymn: '',
   lastPrayer: '',
+  status: 'draft',
+};
+
+export const BAPTISMAL_RECORD_INITIAL: Partial<BaptismalRecord> = {
+  date: new Date().toISOString().split('T')[0],
+  presidedBy: '',
+  directedBy: '',
+  pianist: '',
+  conductor: '',
+  openingHymn: '',
+  openingPrayer: '',
+  testimony: '',
+  message: '',
+  specialPresentation: '',
+  baptismLocation: 'same-room',
+  personBeingBaptized: '',
+  personPerformingBaptism: '',
+  witnesses: ['', ''],
+  welcomeOrganizations: [],
+  closingHymn: '',
+  closingPrayer: '',
   status: 'draft',
 };
 
