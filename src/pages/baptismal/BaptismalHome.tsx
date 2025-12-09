@@ -4,7 +4,7 @@
  * Representa as águas do batismo do Rio Jordão
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { BaptismalRecord, WelcomeOrganizationItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
@@ -12,12 +12,21 @@ import { Download, Save, Plus, History, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
+import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
 
 export default function BaptismalHome() {
   const [record, setRecord] = useState<BaptismalRecord>(BAPTISMAL_RECORD_INITIAL as BaptismalRecord);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    // Verificar autenticação
+    if (!isAuthenticated(AUTH_CONFIG.BAPTISMAL_SESSION_KEY)) {
+      setLocation('/');
+      return;
+    }
+  }, [setLocation]);
 
   const handleInputChange = (field: keyof BaptismalRecord, value: any) => {
     setRecord((prev) => ({ ...prev, [field]: value }));

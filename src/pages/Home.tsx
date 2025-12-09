@@ -18,6 +18,7 @@ import { saveRecord, initDB } from '@/lib/db';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
 import { validateRecord, generateRecordText, downloadTextFile, isFirstSunday } from '@/lib/utils';
+import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
 
 export default function Home() {
   const [record, setRecord] = useState<SacramentalRecord>(SACRAMENTAL_RECORD_INITIAL as SacramentalRecord);
@@ -31,6 +32,12 @@ export default function Home() {
   const isTestimonyMeeting = record.date ? isFirstSunday(record.date) : false;
 
   useEffect(() => {
+    // Verificar autenticação
+    if (!isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) {
+      setLocation('/');
+      return;
+    }
+
     // Inicializar banco de dados
     initDB().catch((error) => {
       console.error('Erro ao inicializar banco de dados:', error);

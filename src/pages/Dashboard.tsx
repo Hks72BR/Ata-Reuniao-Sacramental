@@ -3,11 +3,34 @@
  * Permite escolher entre Ata Sacramental ou Ata Batismal
  */
 
+import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { FileText, Droplets } from 'lucide-react';
+import { PinAuthModal } from '@/components/PinAuthModal';
+import { AUTH_CONFIG } from '@/lib/auth';
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
+  const [showSacramentalAuth, setShowSacramentalAuth] = useState(false);
+  const [showBaptismalAuth, setShowBaptismalAuth] = useState(false);
+
+  const handleSacramentalClick = () => {
+    setShowSacramentalAuth(true);
+  };
+
+  const handleBaptismalClick = () => {
+    setShowBaptismalAuth(true);
+  };
+
+  const handleSacramentalSuccess = () => {
+    setShowSacramentalAuth(false);
+    setLocation('/sacramental');
+  };
+
+  const handleBaptismalSuccess = () => {
+    setShowBaptismalAuth(false);
+    setLocation('/baptismal');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
@@ -46,7 +69,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Card Ata Sacramental */}
           <button
-            onClick={() => setLocation('/sacramental')}
+            onClick={handleSacramentalClick}
             className="group relative overflow-hidden bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 border-4 border-[#1e3a5f] p-8"
           >
             {/* Background gradient */}
@@ -84,7 +107,7 @@ export default function Dashboard() {
 
           {/* Card Ata Batismal */}
           <button
-            onClick={() => setLocation('/baptismal')}
+            onClick={handleBaptismalClick}
             className="group relative overflow-hidden bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 border-4 border-[#1e8b9f] p-8"
           >
             {/* Background gradient */}
@@ -131,6 +154,27 @@ export default function Dashboard() {
           </p>
         </div>
       </div>
+
+      {/* Modais de Autenticação */}
+      <PinAuthModal
+        isOpen={showSacramentalAuth}
+        onClose={() => setShowSacramentalAuth(false)}
+        onSuccess={handleSacramentalSuccess}
+        title={AUTH_CONFIG.SACRAMENTAL_TITLE}
+        description={AUTH_CONFIG.SACRAMENTAL_DESCRIPTION}
+        correctPin={AUTH_CONFIG.SACRAMENTAL_PIN}
+        storageKey={AUTH_CONFIG.SACRAMENTAL_SESSION_KEY}
+      />
+
+      <PinAuthModal
+        isOpen={showBaptismalAuth}
+        onClose={() => setShowBaptismalAuth(false)}
+        onSuccess={handleBaptismalSuccess}
+        title={AUTH_CONFIG.BAPTISMAL_TITLE}
+        description={AUTH_CONFIG.BAPTISMAL_DESCRIPTION}
+        correctPin={AUTH_CONFIG.BAPTISMAL_PIN}
+        storageKey={AUTH_CONFIG.BAPTISMAL_SESSION_KEY}
+      />
     </div>
   );
 }
