@@ -70,10 +70,13 @@ export function generateRecordText(record: SacramentalRecord): string {
 }
 
 /**
- * Formatar data para exibição em português
+ * Formatar data para exibição (sem problema de timezone)
  */
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  // Usar a data sem conversão de timezone
+  const [year, month, day] = dateString.split('-');
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  
   return date.toLocaleDateString('pt-BR', {
     year: 'numeric',
     month: 'long',
