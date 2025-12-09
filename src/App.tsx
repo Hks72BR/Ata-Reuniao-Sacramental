@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import History from "./pages/History";
 import View from "./pages/View";
 import BaptismalHome from "./pages/baptismal/BaptismalHome";
+import BaptismalHistory from "./pages/baptismal/BaptismalHistory";
 
 function Router() {
   return (
@@ -23,7 +24,7 @@ function Router() {
       <Route path={"/sacramental/history"} component={History} />
       <Route path={"/sacramental/view"} component={View} />
       <Route path={"/baptismal"} component={BaptismalHome} />
-      <Route path={"/baptismal/history"} component={() => <div className="p-8 text-center">Histórico Batismal em desenvolvimento</div>} />
+      <Route path={"/baptismal/history"} component={BaptismalHistory} />
       <Route path={"/baptismal/view"} component={() => <div className="p-8 text-center">Visualização Batismal em desenvolvimento</div>} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

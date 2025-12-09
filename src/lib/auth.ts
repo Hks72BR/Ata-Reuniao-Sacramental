@@ -11,10 +11,10 @@
 
 export const AUTH_CONFIG = {
   // PIN para acessar Ata Sacramental (Bispado)
-  SACRAMENTAL_PIN: '1234', // ALTERE AQUI para o PIN do Bispado
+  SACRAMENTAL_PIN: '2026', // ALTERE AQUI para o PIN do Bispado
   
   // PIN para acessar Ata Batismal (Missionários)
-  BAPTISMAL_PIN: '5678', // ALTERE AQUI para o PIN dos Missionários
+  BAPTISMAL_PIN: '2025', // ALTERE AQUI para o PIN dos Missionários
   
   // Chaves de sessão (não alterar)
   SACRAMENTAL_SESSION_KEY: 'sacramental_auth',
