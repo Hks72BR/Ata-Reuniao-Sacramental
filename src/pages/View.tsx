@@ -9,7 +9,7 @@ import { SacramentalRecord } from '@/types';
 import { ArrowLeft, Download, Edit2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
-import { formatDate, generatePDF } from '@/lib/utils';
+import { formatDate, generatePDF, isFirstSunday } from '@/lib/utils';
 
 export default function View() {
   const [record, setRecord] = useState<SacramentalRecord | null>(null);
@@ -197,15 +197,34 @@ export default function View() {
             <Field label="Hino Sacramental" value={record.sacramentalHymn} />
           </Section>
 
-          {/* Oradores */}
-          <Section title="Oradores">
-            <div className="space-y-4">
-              <Field label="Primeiro Orador" value={record.firstSpeaker} />
-              <Field label="Segundo Orador" value={record.secondSpeaker} />
-              <Field label="Hino Intermediário" value={record.intermediateHymn} />
-              <Field label="Último Orador" value={record.lastSpeaker} />
-            </div>
-          </Section>
+          {/* Renderização condicional: Oradores OU Testemunhos */}
+          {record.meetingType === 'testimony' || isFirstSunday(record.date) ? (
+            <Section title="Reunião de Testemunhos">
+              <div className="p-6 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg border-2 border-[#d4a574]">
+                <p className="text-sm text-[#1e3a5f]/70 font-semibold mb-3 flex items-center gap-2">
+                  <span className="text-[#d4a574]">✦</span>
+                  Primeiro Domingo do Mês
+                </p>
+                <div>
+                  <p className="text-sm font-semibold text-[#1e3a5f]/70 font-['Poppins'] mb-2">
+                    Membros que Prestaram Testemunho:
+                  </p>
+                  <p className="whitespace-pre-wrap text-[#1e3a5f]">
+                    {record.testimonies || 'Nenhum testemunho registrado'}
+                  </p>
+                </div>
+              </div>
+            </Section>
+          ) : (
+            <Section title="Oradores">
+              <div className="space-y-4">
+                <Field label="Primeiro Orador" value={record.firstSpeaker} />
+                <Field label="Segundo Orador" value={record.secondSpeaker} />
+                <Field label="Hino Intermediário" value={record.intermediateHymn} />
+                <Field label="Último Orador" value={record.lastSpeaker} />
+              </div>
+            </Section>
+          )}
 
           {/* Encerramento */}
           <Section title="Encerramento">

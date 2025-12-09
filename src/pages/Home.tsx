@@ -15,14 +15,18 @@ import { toast } from 'sonner';
 import { saveRecord, initDB } from '@/lib/db';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
-import { validateRecord, generateRecordText, downloadTextFile } from '@/lib/utils';
+import { validateRecord, generateRecordText, downloadTextFile, isFirstSunday } from '@/lib/utils';
 
 export default function Home() {
   const [record, setRecord] = useState<SacramentalRecord>(SACRAMENTAL_RECORD_INITIAL as SacramentalRecord);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [announcementsLength, setAnnouncementsLength] = useState(0);
+  const [testimoniesLength, setTestimoniesLength] = useState(0);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
+  
+  // Detectar tipo de reunião baseado na data
+  const isTestimonyMeeting = record.date ? isFirstSunday(record.date) : false;
 
   useEffect(() => {
     // Inicializar banco de dados
@@ -37,6 +41,7 @@ export default function Home() {
         const parsed = JSON.parse(savedRecord);
         setRecord(parsed);
         setAnnouncementsLength(parsed.announcements?.length || 0);
+        setTestimoniesLength(parsed.testimonies?.length || 0);
       } catch (error) {
         console.error('Erro ao carregar ata salva:', error);
       }
@@ -44,10 +49,19 @@ export default function Home() {
   }, []);
 
   const handleInputChange = (field: keyof SacramentalRecord, value: any) => {
-    setRecord((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setRecord((prev) => {
+      const updated = {
+        ...prev,
+        [field]: value,
+      };
+      
+      // Atualizar meetingType automaticamente quando a data mudar
+      if (field === 'date' && value) {
+        updated.meetingType = isFirstSunday(value) ? 'testimony' : 'regular';
+      }
+      
+      return updated;
+    });
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => {
@@ -61,6 +75,11 @@ export default function Home() {
   const handleAnnouncementsChange = (value: string) => {
     setAnnouncementsLength(value.length);
     handleInputChange('announcements', value);
+  };
+  
+  const handleTestimoniesChange = (value: string) => {
+    setTestimoniesLength(value.length);
+    handleInputChange('testimonies', value);
   };
 
   const handleSupportAndReleaseChange = (items: SupportAndReleaseItem[]) => {
@@ -374,53 +393,86 @@ export default function Home() {
             />
           </div>
 
-          {/* Oradores */}
-          <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
-              Oradores
-            </h3>
-            <InputField
-              label="Primeiro Orador"
-              value={record.firstSpeaker}
-              onChange={(e) => handleInputChange('firstSpeaker', e.target.value)}
-              placeholder="Nome do primeiro orador"
-              error={errors.firstSpeaker}
-            />
-            <InputField
-              label="Segundo Orador"
-              value={record.secondSpeaker}
-              onChange={(e) => handleInputChange('secondSpeaker', e.target.value)}
-              placeholder="Nome do segundo orador"
-              error={errors.secondSpeaker}
-            />
-          </div>
+          {/* Renderização condicional: Oradores OU Testemunhos */}
+          {!isTestimonyMeeting ? (
+            <>
+              {/* Oradores - Reunião Regular */}
+              <div className="reverent-card">
+                <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+                  Oradores
+                </h3>
+                <InputField
+                  label="Primeiro Orador"
+                  value={record.firstSpeaker}
+                  onChange={(e) => handleInputChange('firstSpeaker', e.target.value)}
+                  placeholder="Nome do primeiro orador"
+                  error={errors.firstSpeaker}
+                />
+                <InputField
+                  label="Segundo Orador"
+                  value={record.secondSpeaker}
+                  onChange={(e) => handleInputChange('secondSpeaker', e.target.value)}
+                  placeholder="Nome do segundo orador"
+                  error={errors.secondSpeaker}
+                />
+              </div>
 
-          {/* Hino Intermediário */}
-          <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
-              Hino Intermediário <span className="text-lg text-gray-500 font-normal">(opcional)</span>
-            </h3>
-            <InputField
-              label="Hino Intermediário"
-              value={record.intermediateHymn}
-              onChange={(e) => handleInputChange('intermediateHymn', e.target.value)}
-              placeholder="Número ou nome do hino"
-            />
-          </div>
+              {/* Hino Intermediário */}
+              <div className="reverent-card">
+                <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+                  Hino Intermediário <span className="text-lg text-gray-500 font-normal">(opcional)</span>
+                </h3>
+                <InputField
+                  label="Hino Intermediário"
+                  value={record.intermediateHymn}
+                  onChange={(e) => handleInputChange('intermediateHymn', e.target.value)}
+                  placeholder="Número ou nome do hino"
+                />
+              </div>
 
-          {/* Último Orador */}
-          <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
-              Último Orador
-            </h3>
-            <InputField
-              label="Último Orador"
-              value={record.lastSpeaker}
-              onChange={(e) => handleInputChange('lastSpeaker', e.target.value)}
-              placeholder="Nome do último orador"
-              error={errors.lastSpeaker}
-            />
-          </div>
+              {/* Último Orador */}
+              <div className="reverent-card">
+                <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+                  Último Orador
+                </h3>
+                <InputField
+                  label="Último Orador"
+                  value={record.lastSpeaker}
+                  onChange={(e) => handleInputChange('lastSpeaker', e.target.value)}
+                  placeholder="Nome do último orador"
+                  error={errors.lastSpeaker}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Testemunhos - Primeiro Domingo do Mês */}
+              <div className="reverent-card bg-gradient-to-br from-white to-amber-50 border-2 border-[#d4a574]">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-foreground mb-2 font-serif flex items-center gap-2">
+                    <span className="text-[#d4a574]">✦</span>
+                    Reunião de Testemunhos
+                  </h3>
+                  <p className="text-sm text-gray-600 italic">
+                    Primeiro Domingo do Mês - Os membros prestam seus testemunhos
+                  </p>
+                </div>
+                <TextAreaField
+                  label="Membros que Prestaram Testemunho"
+                  value={record.testimonies || ''}
+                  onChange={(e) => handleTestimoniesChange(e.target.value)}
+                  placeholder="Liste os nomes dos membros que prestaram seus testemunhos neste dia..."
+                  rows={8}
+                  maxLength={2000}
+                />
+                <div className="mt-2 text-right">
+                  <span className={`text-sm ${testimoniesLength > 1900 ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                    {testimoniesLength} / 2000 caracteres
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Encerramento */}
           <div className="reverent-card">

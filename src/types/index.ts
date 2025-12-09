@@ -6,6 +6,7 @@
 export interface SacramentalRecord {
   id?: string;
   date: string; // ISO date format
+  meetingType?: 'regular' | 'testimony'; // Tipo de reunião
   
   // Presidência e Direção
   presidedBy: string; // Apenas letras
@@ -28,15 +29,18 @@ export interface SacramentalRecord {
   // Hino Sacramental
   sacramentalHymn: string;
   
-  // Oradores
+  // Oradores (apenas para reunião regular)
   firstSpeaker: string;
   secondSpeaker: string;
   
-  // Hino Intermediário
+  // Hino Intermediário (apenas para reunião regular)
   intermediateHymn: string;
   
-  // Último Orador
+  // Último Orador (apenas para reunião regular)
   lastSpeaker: string;
+  
+  // Testemunhos (apenas para reunião de testemunhos - 1º domingo)
+  testimonies?: string; // Máximo 2000 caracteres
   
   // Último Hino e Oração
   lastHymn: string;

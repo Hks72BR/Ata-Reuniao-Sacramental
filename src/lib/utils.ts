@@ -14,6 +14,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Verifica se uma data é o primeiro domingo do mês
+ */
+export function isFirstSunday(dateString: string): boolean {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  
+  // Verifica se é domingo (0 = domingo)
+  if (date.getDay() !== 0) {
+    return false;
+  }
+  
+  // Verifica se é o primeiro domingo (dia 1-7)
+  return day >= 1 && day <= 7;
+}
+
+/**
  * Gerar texto formatado da ata para exportação
  */
 export function generateRecordText(record: SacramentalRecord): string {
@@ -54,15 +70,24 @@ export function generateRecordText(record: SacramentalRecord): string {
   text += `${'-'.repeat(60)}\n`;
   text += `${record.sacramentalHymn}\n\n`;
 
-  text += `ORADORES\n`;
-  text += `${'-'.repeat(60)}\n`;
-  text += `1º Orador: ${record.firstSpeaker}\n`;
-  text += `2º Orador: ${record.secondSpeaker}\n`;
-  text += `Último Orador: ${record.lastSpeaker}\n\n`;
+  // Renderização condicional: Oradores ou Testemunhos
+  if (record.meetingType === 'testimony' || isFirstSunday(record.date)) {
+    text += `REUNIÃO DE TESTEMUNHOS\n`;
+    text += `${'-'.repeat(60)}\n`;
+    text += `Primeiro Domingo do Mês\n`;
+    text += `\nMembros que Prestaram Testemunho:\n`;
+    text += `${record.testimonies || 'Nenhum testemunho registrado'}\n\n`;
+  } else {
+    text += `ORADORES\n`;
+    text += `${'-'.repeat(60)}\n`;
+    text += `1º Orador: ${record.firstSpeaker}\n`;
+    text += `2º Orador: ${record.secondSpeaker}\n`;
+    text += `Hino Intermediário: ${record.intermediateHymn}\n`;
+    text += `Último Orador: ${record.lastSpeaker}\n\n`;
+  }
 
   text += `HINOS E ORAÇÃO FINAL\n`;
   text += `${'-'.repeat(60)}\n`;
-  text += `Hino Intermediário: ${record.intermediateHymn}\n`;
   text += `Último Hino: ${record.lastHymn}\n`;
   text += `Última Oração: ${record.lastPrayer}\n`;
 
