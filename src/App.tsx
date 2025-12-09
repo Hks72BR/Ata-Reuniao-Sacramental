@@ -33,7 +33,7 @@ function Router() {
 }
 
 // NOTE: Design Theme - Minimalismo Espiritual Contemporâneo
-// - Light theme with Navy (#1e3a5f) primary and Gold (#d4a574) accents
+// - Light theme with elegant primary and accent colors
 // - Playfair Display for headings (serif elegance)
 // - Poppins for body text (clean readability)
 // - Reverent spacing and minimalist aesthetic

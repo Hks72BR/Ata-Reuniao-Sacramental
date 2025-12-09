@@ -1,6 +1,5 @@
 /**
  * Página de Histórico Batismal - Consulta de Atas Batismais Anteriores
- * Design: Tema Águas do Batismo (Azul e Verde Água)
  */
 
 import { useState, useEffect } from 'react';

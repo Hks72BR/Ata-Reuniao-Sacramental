@@ -1,7 +1,5 @@
 /**
  * Página Principal - Formulário de Ata Batismal
- * Cores: Azul Água (#1e8b9f) + Verde Água (#16a085) + Branco
- * Representa as águas do batismo do Rio Jordão
  */
 
 import { useState, useEffect } from 'react';

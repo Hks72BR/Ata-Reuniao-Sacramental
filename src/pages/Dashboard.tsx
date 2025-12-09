@@ -35,7 +35,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Hero Header */}
-      <div className="relative w-full bg-gradient-to-br from-[#1a3a52] via-[#1e3a5f] to-[#24466e] py-20 shadow-2xl">
+      <div className="relative w-full bg-gradient-to-br from-[#1e3f5f] via-[#264a6f] to-[#2e5680] py-20 shadow-2xl">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: `radial-gradient(circle at 30% 20%, rgba(212, 165, 116, 0.3) 0%, transparent 50%)`,
@@ -44,11 +44,12 @@ export default function Dashboard() {
         
         <div className="relative z-10 text-center px-4">
           <div className="mb-6 flex justify-center">
-            <div className="w-40 h-40 flex items-center justify-center">
+            <div className="w-64 h-64 flex items-center justify-center">
               <img 
                 src="/images/church_logo.png" 
                 alt="A Igreja de Jesus Cristo dos Santos dos Últimos Dias"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain drop-shadow-2xl"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}
               />
             </div>
           </div>
@@ -99,7 +100,6 @@ export default function Dashboard() {
               <div className="flex items-center justify-center gap-2 mt-4">
                 <div className="w-6 h-6 rounded-full bg-[#1e3a5f] border-2 border-white shadow"></div>
                 <div className="w-6 h-6 rounded-full bg-[#d4a574] border-2 border-white shadow"></div>
-                <span className="text-xs text-gray-500 ml-2">Navy + Dourado</span>
               </div>
 
               {/* Arrow */}
@@ -137,7 +137,6 @@ export default function Dashboard() {
               <div className="flex items-center justify-center gap-2 mt-4">
                 <div className="w-6 h-6 rounded-full bg-[#1e8b9f] border-2 border-white shadow"></div>
                 <div className="w-6 h-6 rounded-full bg-[#16a085] border-2 border-white shadow"></div>
-                <span className="text-xs text-gray-500 ml-2">Azul Água + Verde</span>
               </div>
 
               {/* Arrow */}

@@ -1,7 +1,6 @@
 /**
  * Página Principal - Formulário de Ata Sacramental
  * Design: Minimalismo Espiritual Contemporâneo
- * Cores: Navy (#1e3a5f) + Dourado (#d4a574) + Branco
  * Tipografia: Playfair Display (títulos) + Poppins (corpo)
  */
 
