@@ -38,19 +38,16 @@ export default function Dashboard() {
       <div className="relative w-full bg-gradient-to-br from-[#1e3f5f] via-[#264a6f] to-[#2e5680] py-20 shadow-2xl">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 30% 20%, rgba(212, 165, 116, 0.3) 0%, transparent 50%)`,
+            backgroundImage: `radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%)`,
           }}></div>
         </div>
         
         <div className="relative z-10 text-center px-4">
           <div className="mb-6 flex justify-center">
-            <div className="w-64 h-64 flex items-center justify-center">
-              <img 
-                src="/images/church_logo.png" 
-                alt="A Igreja de Jesus Cristo dos Santos dos Últimos Dias"
-                className="w-full h-full object-contain drop-shadow-2xl"
-                style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}
-              />
+            <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full border-2 border-white/30 flex items-center justify-center shadow-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
           </div>
           <h1 className="text-5xl font-bold text-white mb-4 font-['Playfair_Display']">
@@ -64,7 +61,7 @@ export default function Dashboard() {
 
       {/* Cards de Seleção */}
       <div className="container max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center text-[#1e3a5f] mb-4 font-['Playfair_Display']">
+        <h2 className="text-3xl font-bold text-center text-[#1e3f5f] mb-4 font-['Playfair_Display']">
           Selecione o Tipo de Ata
         </h2>
         <p className="text-center text-gray-600 mb-12 font-['Poppins']">
@@ -75,14 +72,14 @@ export default function Dashboard() {
           {/* Card Ata Sacramental */}
           <button
             onClick={handleSacramentalClick}
-            className="group relative overflow-hidden bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 border-4 border-[#1e3a5f] p-8"
+            className="group relative overflow-hidden bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 border-4 border-[#1e3f5f] p-8"
           >
             {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/5 to-[#d4a574]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1e3f5f]/5 to-[#264a6f]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
             <div className="relative z-10">
               {/* Icon */}
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#1e3a5f] to-[#24466e] flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#1e3f5f] to-[#264a6f] flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
                 <FileText size={40} className="text-white" />
               </div>
 
