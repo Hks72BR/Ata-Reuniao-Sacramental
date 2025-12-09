@@ -393,12 +393,26 @@ export default function Home() {
               placeholder="Nome do segundo orador"
               error={errors.secondSpeaker}
             />
+          </div>
+
+          {/* Hino Intermediário */}
+          <div className="reverent-card">
+            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+              Hino Intermediário <span className="text-lg text-gray-500 font-normal">(opcional)</span>
+            </h3>
             <InputField
               label="Hino Intermediário"
               value={record.intermediateHymn}
               onChange={(e) => handleInputChange('intermediateHymn', e.target.value)}
               placeholder="Número ou nome do hino"
             />
+          </div>
+
+          {/* Último Orador */}
+          <div className="reverent-card">
+            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+              Último Orador
+            </h3>
             <InputField
               label="Último Orador"
               value={record.lastSpeaker}
