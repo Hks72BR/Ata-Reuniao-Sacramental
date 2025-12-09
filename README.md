@@ -161,23 +161,20 @@ interface SacramentalRecord {
 - [x] Imports corrigidos
 
 ### Fase 2 (Próximos Passos)
-- [ ] Geração de PDF profissional
-- [ ] Exportação em múltiplos formatos (Word, Excel)
-- [ ] Busca avançada
-- [ ] Tema escuro completo
-- [ ] Loading states e skeleton loaders
+- [x] Geração de PDF profissional
+- [x] Busca avançada ( implementado busca por datas)
+- [x] Tema escuro completo otimizado
+- [x] Loading states e skeleton loaders
 
 ### Fase 3 (Futuro)
 - [ ] Testes automatizados (Vitest)
-- [ ] CI/CD com GitHub Actions
-- [ ] Acessibilidade (a11y) completa
-- [ ] Internacionalização (i18n)
+- [x] Deploy diretamete no VERCEL sincronizado com repo no Github sem a necessidade de workflow CI/CD
 
 ### Fase 4 (Opcional)
-- [ ] Backend/Firebase
-- [ ] Sincronização na nuvem
-- [ ] Autenticação
-- [ ] Compartilhamento de atas
+- [x] Backend/Firebase
+- [x] Sincronização na nuvem
+- [x] Autenticação
+- [x] Compartilhamento de atas
 
 ## 📄 Licença
 
