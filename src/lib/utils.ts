@@ -59,9 +59,11 @@ export function generateRecordText(record: SacramentalRecord): string {
   text += `${'-'.repeat(60)}\n`;
   record.supportAndRelease.forEach((item) => {
     if (item.type === 'release') {
-      text += `Desobrigação: ${item.fullName} - Posição: ${item.position}\n`;
+      text += `Desobrigação:\n`;
+      text += `${item.fullName} estamos desobrigando o irmão ou irmã do chamado ${item.position}, em louvor ao serviço prestado por estes irmãos que possamos nos manifestar levantando a mão.\n\n`;
     } else {
-      text += `Apoio: ${item.fullName} - Chamado: ${item.callingName}\n`;
+      text += `Apoio:\n`;
+      text += `${item.fullName} está sendo chamado(a) para servir como ${item.callingName}. Todos os que forem a favor manifestem-se levantando a mão. (esperar membros se manifestarem) Ao contrário pelo mesmo sinal. Obrigado irmãos!\n\n`;
     }
   });
   text += `\n`;

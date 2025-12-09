@@ -44,7 +44,7 @@ export function SupportAndReleaseSection({
   const renderItemText = (item: SupportAndReleaseItem) => {
     if (item.type === 'release') {
       return (
-        <p className="text-sm text-foreground">
+        <p className="text-sm text-foreground leading-relaxed">
           <span className="font-semibold">{item.fullName}</span> estamos desobrigando o irmão ou irmã
           do chamado <span className="font-semibold">{item.position}</span>, em louvor ao serviço
           prestado por estes irmãos que possamos nos manifestar levantando a mão.
@@ -52,10 +52,11 @@ export function SupportAndReleaseSection({
       );
     } else {
       return (
-        <p className="text-sm text-foreground">
-          É proposto que apoiamos o irmão ou irmã{' '}
-          <span className="font-semibold">{item.fullName}</span> +{' '}
-          <span className="font-semibold">{item.callingName}</span>
+        <p className="text-sm text-foreground leading-relaxed">
+          <span className="font-semibold">{item.fullName}</span> está sendo chamado(a) para servir como{' '}
+          <span className="font-semibold">{item.callingName}</span>. Todos os que forem a favor manifestem-se 
+          levantando a mão. <span className="italic text-muted-foreground">(esperar membros se manifestarem)</span>{' '}
+          Ao contrário pelo mesmo sinal. Obrigado irmãos!
         </p>
       );
     }

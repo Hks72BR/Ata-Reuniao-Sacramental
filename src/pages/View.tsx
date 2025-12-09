@@ -174,18 +174,20 @@ export default function View() {
               <div className="space-y-3">
                 {record.supportAndRelease.map((item) => (
                   <div key={item.id} className="p-4 bg-gradient-to-br from-[#1e3a5f]/5 to-[#d4a574]/5 rounded-lg border border-[#d4a574]/20">
-                    <p className="text-sm font-['Poppins']">
-                      <span className="font-semibold text-[#d4a574]">
-                        {item.type === 'release' ? 'Desobrigação' : 'Apoio'}:
-                      </span>{' '}
-                      <span className="font-semibold">{item.fullName}</span>
-                      {item.type === 'release' && item.position && (
-                        <span> - Posição: {item.position}</span>
-                      )}
-                      {item.type === 'support' && item.callingName && (
-                        <span> - Chamado: {item.callingName}</span>
-                      )}
-                    </p>
+                    {item.type === 'release' ? (
+                      <p className="text-sm font-['Poppins'] leading-relaxed">
+                        <span className="font-semibold">{item.fullName}</span> estamos desobrigando o irmão ou irmã
+                        do chamado <span className="font-semibold">{item.position}</span>, em louvor ao serviço
+                        prestado por estes irmãos que possamos nos manifestar levantando a mão.
+                      </p>
+                    ) : (
+                      <p className="text-sm font-['Poppins'] leading-relaxed">
+                        <span className="font-semibold">{item.fullName}</span> está sendo chamado(a) para servir como{' '}
+                        <span className="font-semibold">{item.callingName}</span>. Todos os que forem a favor manifestem-se 
+                        levantando a mão. <span className="italic text-gray-500">(esperar membros se manifestarem)</span>{' '}
+                        Ao contrário pelo mesmo sinal. Obrigado irmãos!
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
