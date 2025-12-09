@@ -96,12 +96,6 @@ export default function Dashboard() {
                 Registre reuniões sacramentais, testemunhos, oradores, apoios e designações de chamados
               </p>
 
-              {/* Color Indicator */}
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-6 h-6 rounded-full bg-[#1e3a5f] border-2 border-white shadow"></div>
-                <div className="w-6 h-6 rounded-full bg-[#d4a574] border-2 border-white shadow"></div>
-              </div>
-
               {/* Arrow */}
               <div className="mt-6 text-[#1e3a5f] group-hover:translate-x-2 transition-transform duration-300">
                 <span className="text-2xl">→</span>
@@ -132,12 +126,6 @@ export default function Dashboard() {
               <p className="text-gray-600 mb-6 font-['Poppins']">
                 Registre serviços batismais, ordenanças, testemunhas e boas-vindas das organizações
               </p>
-
-              {/* Color Indicator */}
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <div className="w-6 h-6 rounded-full bg-[#1e8b9f] border-2 border-white shadow"></div>
-                <div className="w-6 h-6 rounded-full bg-[#16a085] border-2 border-white shadow"></div>
-              </div>
 
               {/* Arrow */}
               <div className="mt-6 text-[#1e8b9f] group-hover:translate-x-2 transition-transform duration-300">
