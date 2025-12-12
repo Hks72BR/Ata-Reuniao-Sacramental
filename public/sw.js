@@ -3,7 +3,7 @@
  * Funcionalidade 100% offline com Cache First
  */
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `ata-sacramental-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ata-sacramental-runtime-${CACHE_VERSION}`;
 
@@ -78,16 +78,37 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Ignorar Firebase e APIs externas (precisam de conexão)
+  // Ignorar Firebase e APIs externas (precisam de conexão), mas PERMITIR fontes
   if (
     url.hostname.includes('firebaseio.com') ||
-    url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('firebase.com') ||
-    url.hostname.includes('google.com') ||
-    url.hostname.includes('gstatic.com')
+    url.hostname.includes('firebase.com')
   ) {
     // Para Firebase: tentar rede, sem cache
     event.respondWith(fetch(request));
+    return;
+  }
+
+  // Para Google Fonts: cachear agressivamente (são estáticos)
+  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        }).catch(() => {
+          // Fontes não são críticas, app funciona sem elas
+          return new Response('', { status: 503 });
+        });
+      })
+    );
     return;
   }
 

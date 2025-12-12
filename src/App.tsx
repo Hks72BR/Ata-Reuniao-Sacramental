@@ -9,8 +9,6 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { useServiceWorker } from "./hooks/useServiceWorker";
-import { WifiOff, Wifi } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import History from "./pages/History";
@@ -41,35 +39,11 @@ function Router() {
 // - Reverent spacing and minimalist aesthetic
 
 function App() {
-  const { isOnline, swReady } = useServiceWorker();
-
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          
-          {/* Indicador de Status Offline/Online */}
-          {swReady && (
-            <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full shadow-lg backdrop-blur-sm transition-all duration-300 ${
-              isOnline 
-                ? 'bg-emerald-500/90 text-white' 
-                : 'bg-orange-500/90 text-white animate-pulse'
-            }`}>
-              {isOnline ? (
-                <>
-                  <Wifi size={16} />
-                  <span className="text-xs font-semibold">Online</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff size={16} />
-                  <span className="text-xs font-semibold">Modo Offline</span>
-                </>
-              )}
-            </div>
-          )}
-          
           <Router />
         </TooltipProvider>
       </ThemeProvider>
