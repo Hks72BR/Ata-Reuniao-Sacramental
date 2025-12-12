@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
 import { getAllRecords, searchRecordsByDate, deleteRecord } from '@/lib/db';
 import { SacramentalRecord } from '@/types';
-import { Eye, Trash2, Download, Search, Calendar, ArrowLeft } from 'lucide-react';
+import { Eye, Trash2, Search, Calendar, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
@@ -88,11 +88,6 @@ export default function History() {
       toast.error('❌ Erro ao deletar ata');
       console.error(error);
     }
-  };
-
-  const handleDownloadRecord = (record: SacramentalRecord) => {
-    // Redirecionar para a página de visualização que tem o botão de download
-    setLocation(`/sacramental/view/${record.id}`);
   };
 
   return (
@@ -232,13 +227,6 @@ export default function History() {
                     >
                       <Eye size={16} />
                       Ver
-                    </Button>
-                    <Button
-                      onClick={() => handleDownloadRecord(record)}
-                      className="bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
-                    >
-                      <Download size={16} />
-                      Baixar
                     </Button>
                     <Button
                       onClick={() => handleDeleteRecord(record.id!)}

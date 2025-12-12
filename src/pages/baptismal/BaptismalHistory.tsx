@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
 import { BaptismalRecord } from '@/types';
-import { Eye, Trash2, Download, Search, Droplets, ArrowLeft } from 'lucide-react';
+import { Eye, Trash2, Search, Droplets, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
@@ -91,11 +91,6 @@ export default function BaptismalHistory() {
       toast.error('❌ Erro ao deletar ata batismal');
       console.error(error);
     }
-  };
-
-  const handleDownloadRecord = (record: BaptismalRecord) => {
-    // Redirecionar para a página de visualização que tem o botão de download
-    setLocation(`/baptismal/view/${record.id}`);
   };
 
   return (
@@ -239,13 +234,6 @@ export default function BaptismalHistory() {
                     >
                       <Eye size={16} />
                       Ver
-                    </Button>
-                    <Button
-                      onClick={() => handleDownloadRecord(record)}
-                      className="bg-white border-2 border-[#1e8b9f] text-[#1e8b9f] hover:bg-[#1e8b9f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
-                    >
-                      <Download size={16} />
-                      Baixar
                     </Button>
                     <Button
                       onClick={() => handleDeleteRecord(record.id!)}
