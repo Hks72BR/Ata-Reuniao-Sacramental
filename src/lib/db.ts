@@ -143,20 +143,24 @@ export async function getAllRecords(): Promise<SacramentalRecord[]> {
   // Tentar buscar do Firestore primeiro
   if (useCloud) {
     try {
+      console.log('[DB] Buscando atas do Firebase...');
       const records = await getAllRecordsFromCloud();
+      console.log('[DB] Atas do Firebase:', records.length, records);
+      
       // Atualizar cache local
       for (const record of records) {
         await saveRecordLocal(record).catch(() => {}); // Ignora erros de cache
       }
       return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (error) {
-      console.warn('Erro ao buscar do Firestore, usando IndexedDB:', error);
+      console.warn('[DB] Erro ao buscar do Firestore, usando IndexedDB:', error);
       // Se falhar, busca localmente
       return getAllRecordsLocal();
     }
   }
 
   // Modo offline - buscar apenas localmente
+  console.log('[DB] Modo offline, buscando do IndexedDB...');
   return getAllRecordsLocal();
 }
 

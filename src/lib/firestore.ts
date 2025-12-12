@@ -79,18 +79,25 @@ export async function saveRecordToCloud(record: SacramentalRecord): Promise<stri
  */
 export async function getAllRecordsFromCloud(): Promise<SacramentalRecord[]> {
   try {
+    console.log('[Firestore] Iniciando busca de atas...');
     const q = query(
       collection(db, COLLECTION_NAME),
       orderBy('date', 'desc')
     );
     const querySnapshot = await getDocs(q);
+    console.log('[Firestore] Documentos encontrados:', querySnapshot.size);
     
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...convertTimestamps(doc.data())
-    } as SacramentalRecord));
+    const records = querySnapshot.docs.map(doc => {
+      console.log('[Firestore] Doc ID:', doc.id, 'Data:', doc.data());
+      return {
+        id: doc.id,
+        ...convertTimestamps(doc.data())
+      } as SacramentalRecord;
+    });
+    
+    return records;
   } catch (error) {
-    console.error('Erro ao buscar atas do Firestore:', error);
+    console.error('[Firestore] Erro ao buscar atas:', error);
     throw error;
   }
 }

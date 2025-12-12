@@ -27,10 +27,17 @@ export default function History() {
   const loadRecords = async () => {
     try {
       setLoading(true);
+      console.log('[History] Carregando atas...');
       const allRecords = await getAllRecords();
+      console.log('[History] Atas carregadas:', allRecords.length, allRecords);
       setRecords(allRecords);
       setFilteredRecords(allRecords);
+      
+      if (allRecords.length === 0) {
+        toast.info('Nenhuma ata encontrada. Crie a primeira ata!');
+      }
     } catch (error) {
+      console.error('[History] Erro ao carregar:', error);
       toast.error('Erro ao carregar histórico de atas');
       console.error(error);
     } finally {
