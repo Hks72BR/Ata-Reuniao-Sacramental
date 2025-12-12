@@ -151,7 +151,7 @@ export function PinAuthModal({
             <input
               key={index}
               id={`pin-${index}`}
-              type="text"
+              type="password"
               inputMode="numeric"
               maxLength={1}
               value={digit}
