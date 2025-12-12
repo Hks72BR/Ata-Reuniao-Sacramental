@@ -11,6 +11,11 @@ import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
 import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
+import { 
+  getAllBaptismalRecordsFromCloud, 
+  deleteBaptismalRecordFromCloud,
+  searchBaptismalRecordsByDateInCloud 
+} from '@/lib/baptismalFirestore';
 
 export default function BaptismalHistory() {
   const [records, setRecords] = useState<BaptismalRecord[]>([]);
@@ -31,19 +36,17 @@ export default function BaptismalHistory() {
   const loadRecords = async () => {
     try {
       setLoading(true);
-      // TODO: Implementar getAllBaptismalRecords() no db.ts quando integrar com Firebase
-      // const allRecords = await getAllBaptismalRecords();
-      // setRecords(allRecords);
-      // setFilteredRecords(allRecords);
+      console.log('[BaptismalHistory] Carregando atas batismais...');
+      const allRecords = await getAllBaptismalRecordsFromCloud();
+      console.log('[BaptismalHistory] Atas carregadas:', allRecords.length);
+      setRecords(allRecords);
+      setFilteredRecords(allRecords);
       
-      // Temporariamente, carregar do localStorage
-      const storedRecords = localStorage.getItem('baptismal_records');
-      if (storedRecords) {
-        const parsedRecords = JSON.parse(storedRecords);
-        setRecords(parsedRecords);
-        setFilteredRecords(parsedRecords);
+      if (allRecords.length === 0) {
+        toast.info('Nenhuma ata batismal encontrada. Crie a primeira!');
       }
     } catch (error) {
+      console.error('[BaptismalHistory] Erro ao carregar:', error);
       toast.error('Erro ao carregar histórico de atas batismais');
       console.error(error);
     } finally {
@@ -51,14 +54,14 @@ export default function BaptismalHistory() {
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!searchDate) {
       setFilteredRecords(records);
       return;
     }
 
     try {
-      const results = records.filter(record => record.date === searchDate);
+      const results = await searchBaptismalRecordsByDateInCloud(searchDate);
       setFilteredRecords(results);
       if (results.length === 0) {
         toast.info('Nenhuma ata batismal encontrada para esta data');
@@ -70,37 +73,30 @@ export default function BaptismalHistory() {
   };
 
   const handleViewRecord = (record: BaptismalRecord) => {
-    // Salvar o registro selecionado em sessionStorage para visualização
-    sessionStorage.setItem('viewingBaptismalRecord', JSON.stringify(record));
-    setLocation('/baptismal/view');
+    // Navegar para visualização usando ID na URL
+    setLocation(`/baptismal/view/${record.id}`);
   };
 
-  const handleDeleteRecord = (id: string) => {
+  const handleDeleteRecord = async (id: string) => {
     if (!confirm('Tem certeza que deseja deletar esta ata batismal? Esta ação não pode ser desfeita.')) {
       return;
     }
 
     try {
-      // TODO: Implementar deleteBaptismalRecord() quando integrar com Firebase
-      // await deleteBaptismalRecord(id);
-      
-      // Temporariamente, deletar do localStorage
-      const updatedRecords = records.filter(r => r.id !== id);
-      localStorage.setItem('baptismal_records', JSON.stringify(updatedRecords));
-      
+      await deleteBaptismalRecordFromCloud(id);
       toast.success('✅ Ata batismal deletada com sucesso', {
         duration: 2000,
       });
-      loadRecords();
+      await loadRecords();
     } catch (error) {
-      toast.error('❌ Erro ao deletar ata');
+      toast.error('❌ Erro ao deletar ata batismal');
       console.error(error);
     }
   };
 
   const handleDownloadRecord = (record: BaptismalRecord) => {
     // Redirecionar para a página de visualização para gerar PDF
-    sessionStorage.setItem('viewingBaptismalRecord', JSON.stringify(record));
+    setLocation(`/baptismal/view/${record.id}`);
     setLocation('/baptismal/view');
   };
 

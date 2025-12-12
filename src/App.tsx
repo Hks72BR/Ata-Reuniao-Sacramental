@@ -25,7 +25,7 @@ function Router() {
       <Route path={"/sacramental/view/:id"} component={View} />
       <Route path={"/baptismal"} component={BaptismalHome} />
       <Route path={"/baptismal/history"} component={BaptismalHistory} />
-      <Route path={"/baptismal/view"} component={() => <div className="p-8 text-center">Visualização Batismal em desenvolvimento</div>} />
+      <Route path={"/baptismal/view/:id"} component={() => <div className="p-8 text-center">Visualização Batismal em desenvolvimento</div>} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

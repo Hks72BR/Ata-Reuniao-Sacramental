@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
 import { isAuthenticated, logout, AUTH_CONFIG } from '@/lib/auth';
+import { saveBaptismalRecordToCloud } from '@/lib/baptismalFirestore';
 
 export default function BaptismalHome() {
   const [record, setRecord] = useState<BaptismalRecord>(BAPTISMAL_RECORD_INITIAL as BaptismalRecord);
@@ -72,8 +73,41 @@ export default function BaptismalHome() {
     }));
   };
 
-  const handleSave = () => {
-    toast.info('Funcionalidade de salvar em desenvolvimento');
+  const handleSave = async () => {
+    try {
+      // Validações básicas
+      if (!record.date) {
+        toast.error('Data é obrigatória');
+        return;
+      }
+      if (!record.personBeingBaptized) {
+        toast.error('Nome da pessoa batizada é obrigatório');
+        return;
+      }
+
+      // Preparar record com status e timestamps
+      const recordToSave: BaptismalRecord = {
+        ...record,
+        status: 'completed',
+        createdAt: record.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Salvar no Firebase
+      const savedId = await saveBaptismalRecordToCloud(recordToSave);
+      
+      toast.success('✅ Ata batismal salva com sucesso!', {
+        duration: 3000,
+      });
+
+      // Atualizar ID se for novo registro
+      if (!record.id || !record.id.startsWith('ata-')) {
+        setRecord({ ...recordToSave, id: savedId });
+      }
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      toast.error('❌ Erro ao salvar ata batismal');
+    }
   };
 
   const handleDownload = () => {
