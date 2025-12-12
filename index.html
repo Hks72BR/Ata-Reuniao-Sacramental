@@ -13,7 +13,32 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Ata SUD" />
     <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preload de fontes essenciais -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <title>Ata Sacramental - Igreja SUD</title>
+    
+    <!-- Service Worker Registration - Inline para garantir registro imediato -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(registration => {
+              console.log('✅ Service Worker registrado:', registration.scope);
+              
+              // Verificar atualizações a cada 30 segundos
+              setInterval(() => {
+                registration.update();
+              }, 30000);
+            })
+            .catch(error => {
+              console.error('❌ Erro ao registrar Service Worker:', error);
+            });
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -17,5 +17,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      // Garantir que o Service Worker seja copiado
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
+    },
   },
+  // Garantir que assets públicos sejam copiados
+  publicDir: 'public',
 })
