@@ -7,30 +7,60 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { SacramentalRecord } from '@/types';
 import { ArrowLeft, Download, Edit2 } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useLocation, useRoute } from 'wouter';
 import { toast } from 'sonner';
 import { formatDate, generatePDF, isFirstSunday } from '@/lib/utils';
+import { getRecordFromCloud } from '@/lib/firestore';
 
 export default function View() {
   const [record, setRecord] = useState<SacramentalRecord | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
+  const [match, params] = useRoute('/sacramental/view/:id');
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Recuperar registro de sessionStorage
-    const viewingRecord = sessionStorage.getItem('viewingRecord');
-    if (viewingRecord) {
-      try {
-        setRecord(JSON.parse(viewingRecord));
-      } catch (error) {
-        toast.error('Erro ao carregar ata');
-        setLocation('/history');
+    const loadRecord = async () => {
+      if (!match || !params?.id) {
+        toast.error('ID da ata não encontrado');
+        setLocation('/sacramental/history');
+        return;
       }
-    } else {
-      setLocation('/history');
-    }
-  }, [setLocation]);
+
+      try {
+        setIsLoading(true);
+        const data = await getRecordFromCloud(params.id);
+        
+        if (!data) {
+          toast.error('Ata não encontrada');
+          setLocation('/404');
+          return;
+        }
+        
+        setRecord(data);
+      } catch (error) {
+        console.error('Erro ao carregar ata:', error);
+        toast.error('Erro ao carregar ata');
+        setLocation('/sacramental/history');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadRecord();
+  }, [match, params, setLocation]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-[#f8f5f0] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1e3a5f] mx-auto mb-4"></div>
+          <p className="text-[#1e3a5f] font-['Poppins']">Carregando ata...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!record) {
     return (

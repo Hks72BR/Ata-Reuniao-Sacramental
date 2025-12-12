@@ -22,7 +22,7 @@ function Router() {
       <Route path={"/"} component={Dashboard} />
       <Route path={"/sacramental"} component={Home} />
       <Route path={"/sacramental/history"} component={History} />
-      <Route path={"/sacramental/view"} component={View} />
+      <Route path={"/sacramental/view/:id"} component={View} />
       <Route path={"/baptismal"} component={BaptismalHome} />
       <Route path={"/baptismal/history"} component={BaptismalHistory} />
       <Route path={"/baptismal/view"} component={() => <div className="p-8 text-center">Visualização Batismal em desenvolvimento</div>} />

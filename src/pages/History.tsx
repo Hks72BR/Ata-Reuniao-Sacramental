@@ -57,9 +57,8 @@ export default function History() {
   };
 
   const handleViewRecord = (record: SacramentalRecord) => {
-    // Salvar o registro selecionado em sessionStorage para visualização
-    sessionStorage.setItem('viewingRecord', JSON.stringify(record));
-    setLocation('/view');
+    // Navegar para visualização usando ID na URL
+    setLocation(`/sacramental/view/${record.id}`);
   };
 
   const handleDeleteRecord = async (id: string) => {
