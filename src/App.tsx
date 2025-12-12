@@ -15,6 +15,7 @@ import History from "./pages/History";
 import View from "./pages/View";
 import BaptismalHome from "./pages/baptismal/BaptismalHome";
 import BaptismalHistory from "./pages/baptismal/BaptismalHistory";
+import BaptismalView from "./pages/baptismal/BaptismalView";
 
 function Router() {
   return (
@@ -25,7 +26,7 @@ function Router() {
       <Route path={"/sacramental/view/:id"} component={View} />
       <Route path={"/baptismal"} component={BaptismalHome} />
       <Route path={"/baptismal/history"} component={BaptismalHistory} />
-      <Route path={"/baptismal/view/:id"} component={() => <div className="p-8 text-center">Visualização Batismal em desenvolvimento</div>} />
+      <Route path={"/baptismal/view/:id"} component={BaptismalView} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
