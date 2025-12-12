@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
 import { getAllRecords, searchRecordsByDate, deleteRecord } from '@/lib/db';
 import { SacramentalRecord } from '@/types';
-import { Eye, Trash2, Download, Search, Calendar, ArrowLeft } from 'lucide-react';
+import { Trash2, Download, Search, Calendar, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
@@ -69,11 +69,6 @@ export default function History() {
     }
   };
 
-  const handleViewRecord = (record: SacramentalRecord) => {
-    // Navegar para visualização usando ID na URL
-    setLocation(`/sacramental/view/${record.id}`);
-  };
-
   const handleDeleteRecord = async (id: string) => {
     if (!confirm('Tem certeza que deseja deletar esta ata? Esta ação não pode ser desfeita.')) {
       return;
@@ -91,10 +86,90 @@ export default function History() {
     }
   };
 
-  const handleDownloadRecord = (record: SacramentalRecord) => {
-    // Redirecionar para a página de visualização para gerar PDF
-    sessionStorage.setItem('viewingRecord', JSON.stringify(record));
-    setLocation('/view');
+  const handleDownloadRecord = async (record: SacramentalRecord) => {
+    try {
+      toast.info('📄 Gerando PDF...', { duration: 2000 });
+      
+      // Criar elemento temporário com o conteúdo da ata
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '800px';
+      
+      tempDiv.innerHTML = `
+        <div style="font-family: 'Poppins', sans-serif; padding: 40px; background: white;">
+          <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 3px solid #1e3a5f;">
+            <h1 style="font-family: 'Playfair Display', serif; color: #1e3a5f; font-size: 36px; margin-bottom: 10px;">Ata de Reunião Sacramental</h1>
+            <p style="color: #d4a574; font-size: 20px; margin-bottom: 10px;">A Igreja de Jesus Cristo dos Santos dos Últimos Dias</p>
+            <p style="color: #1e3a5f; font-size: 18px; opacity: 0.8;">${formatDate(record.date)}</p>
+          </div>
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e3a5f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #d4a574; padding-bottom: 10px;">◦ Presidência e Direção</h3>
+            <div style="margin-left: 20px;">
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Presidida por:</strong> ${record.presidedBy || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Dirigida por:</strong> ${record.directedBy || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Reconhecimentos:</strong> ${record.recognitions || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Pianista:</strong> ${record.pianist || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Regente:</strong> ${record.conductor || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Recepcionista:</strong> ${record.receptionist || '—'}</p>
+            </div>
+          </div>
+          
+          ${record.announcements ? `
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e3a5f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #d4a574; padding-bottom: 10px;">◦ Anúncios</h3>
+            <div style="margin-left: 20px;">
+              <p style="white-space: pre-wrap;">${record.announcements}</p>
+            </div>
+          </div>
+          ` : ''}
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e3a5f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #d4a574; padding-bottom: 10px;">◦ Hinos e Orações</h3>
+            <div style="margin-left: 20px;">
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Hino de Abertura:</strong> ${record.firstHymn || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Oração de Abertura:</strong> ${record.firstPrayer || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Hino Sacramental:</strong> ${record.sacramentalHymn || '—'}</p>
+              ${record.intermediateHymn ? `<p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Hino Intermediário:</strong> ${record.intermediateHymn}</p>` : ''}
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Último Hino:</strong> ${record.lastHymn || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Última Oração:</strong> ${record.lastPrayer || '—'}</p>
+            </div>
+          </div>
+          
+          ${record.firstSpeaker || record.secondSpeaker || record.lastSpeaker ? `
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e3a5f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #d4a574; padding-bottom: 10px;">◦ Oradores</h3>
+            <div style="margin-left: 20px;">
+              ${record.firstSpeaker ? `<p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Primeiro Orador:</strong> ${record.firstSpeaker}</p>` : ''}
+              ${record.secondSpeaker ? `<p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Segundo Orador:</strong> ${record.secondSpeaker}</p>` : ''}
+              ${record.lastSpeaker ? `<p style="margin-bottom: 10px;"><strong style="color: #1e3a5f;">Último Orador:</strong> ${record.lastSpeaker}</p>` : ''}
+            </div>
+          </div>
+          ` : ''}
+          
+          <div style="margin-top: 60px; padding-top: 30px; border-top: 2px solid #d4a574; text-align: center; font-size: 12px; color: #1e3a5f; opacity: 0.7;">
+            <p>Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+            <p style="margin-top: 10px;">Sistema de Atas - Ala Casa Grande</p>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(tempDiv);
+      
+      // Gerar PDF
+      const { generatePDF } = await import('@/lib/utils');
+      const filename = `ata-sacramental-${record.date.replace(/\//g, '-')}.pdf`;
+      await generatePDF(tempDiv, filename);
+      
+      // Remover elemento temporário
+      document.body.removeChild(tempDiv);
+      
+      toast.success('✅ Download feito com sucesso', { duration: 2000 });
+    } catch (error) {
+      toast.error('❌ Erro ao gerar PDF');
+      console.error(error);
+    }
   };
 
   return (
@@ -229,18 +304,11 @@ export default function History() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button
-                      onClick={() => handleViewRecord(record)}
-                      className="bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
-                    >
-                      <Eye size={16} />
-                      Ver
-                    </Button>
-                    <Button
                       onClick={() => handleDownloadRecord(record)}
                       className="bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
                     >
                       <Download size={16} />
-                      Baixar
+                      Baixar PDF
                     </Button>
                     <Button
                       onClick={() => handleDeleteRecord(record.id!)}

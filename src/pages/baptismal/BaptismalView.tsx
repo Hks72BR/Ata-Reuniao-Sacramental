@@ -140,16 +140,32 @@ export default function BaptismalView() {
 
           {/* Informações do Batismo */}
           <div className="space-y-6">
-            <Section title="Informações do Batismo">
-              <Field label="Pessoa Batizada" value={record.personBeingBaptized} />
-              <Field label="Local do Batismo" value={
-                record.baptismLocation === 'baptism-room' ? 'Sala de Batismo' : 'Fonte Batismal'
-              } />
-              <Field label="Data do Batismo" value={formatDate(record.date)} />
+            <Section title="Presidência e Direção">
+              <Field label="Presidida por" value={record.presidedBy} />
+              <Field label="Dirigida por" value={record.directedBy} />
+              <Field label="Pianista" value={record.pianist} />
+              <Field label="Regente" value={record.conductor} />
             </Section>
 
-            <Section title="Oficiante e Testemunhas">
-              <Field label="Oficiante" value={record.personPerformingBaptism} />
+            <Section title="Abertura">
+              <Field label="Hino de Abertura" value={record.openingHymn} />
+              <Field label="Oração de Abertura" value={record.openingPrayer} />
+            </Section>
+
+            <Section title="Programa">
+              <Field label="Testemunho" value={record.testimony} />
+              <Field label="Mensagem" value={record.message} />
+              {record.specialPresentation && (
+                <Field label="Apresentação Especial" value={record.specialPresentation} />
+              )}
+            </Section>
+
+            <Section title="Ordenança Batismal">
+              <Field label="Pessoa Batizada" value={record.personBeingBaptized} />
+              <Field label="Oficiante do Batismo" value={record.personPerformingBaptism} />
+              <Field label="Local do Batismo" value={
+                record.baptismLocation === 'baptism-room' ? 'Sala de Batismo' : 'Mesma Sala da Reunião'
+              } />
               <Field label="Primeira Testemunha" value={record.witnesses[0]} />
               <Field label="Segunda Testemunha" value={record.witnesses[1]} />
             </Section>
@@ -165,15 +181,9 @@ export default function BaptismalView() {
               </Section>
             )}
 
-            {record.specialPresentation && (
-              <Section title="Apresentação Especial">
-                <p className="text-[#1e8b9f] font-['Poppins'] whitespace-pre-wrap">{record.specialPresentation}</p>
-              </Section>
-            )}
-
-            <Section title="Programa">
-              <Field label="Testemunho" value={record.testimony} />
-              <Field label="Mensagem" value={record.message} />
+            <Section title="Encerramento">
+              <Field label="Hino de Encerramento" value={record.closingHymn} />
+              <Field label="Oração de Encerramento" value={record.closingPrayer} />
             </Section>
           </div>
 

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
 import { BaptismalRecord } from '@/types';
-import { Eye, Trash2, Download, Search, Droplets, ArrowLeft } from 'lucide-react';
+import { Trash2, Download, Search, Droplets, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
@@ -72,11 +72,6 @@ export default function BaptismalHistory() {
     }
   };
 
-  const handleViewRecord = (record: BaptismalRecord) => {
-    // Navegar para visualização usando ID na URL
-    setLocation(`/baptismal/view/${record.id}`);
-  };
-
   const handleDeleteRecord = async (id: string) => {
     if (!confirm('Tem certeza que deseja deletar esta ata batismal? Esta ação não pode ser desfeita.')) {
       return;
@@ -94,10 +89,106 @@ export default function BaptismalHistory() {
     }
   };
 
-  const handleDownloadRecord = (record: BaptismalRecord) => {
-    // Redirecionar para a página de visualização para gerar PDF
-    setLocation(`/baptismal/view/${record.id}`);
-    setLocation('/baptismal/view');
+  const handleDownloadRecord = async (record: BaptismalRecord) => {
+    try {
+      toast.info('📄 Gerando PDF...', { duration: 2000 });
+      
+      // Criar elemento temporário com o conteúdo da ata
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '800px';
+      
+      tempDiv.innerHTML = `
+        <div style="font-family: 'Poppins', sans-serif; padding: 40px; background: white;">
+          <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 3px solid #1e8b9f;">
+            <h1 style="font-family: 'Playfair Display', serif; color: #1e8b9f; font-size: 36px; margin-bottom: 10px;">Ata de Serviço Batismal</h1>
+            <p style="color: #16a085; font-size: 20px; margin-bottom: 10px;">A Igreja de Jesus Cristo dos Santos dos Últimos Dias</p>
+            <p style="color: #1e8b9f; font-size: 18px; opacity: 0.8;">${formatDate(record.date)}</p>
+          </div>
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e8b9f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #16a085; padding-bottom: 10px;">◦ Presidência e Direção</h3>
+            <div style="margin-left: 20px;">
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Presidida por:</strong> ${record.presidedBy || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Dirigida por:</strong> ${record.directedBy || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Pianista:</strong> ${record.pianist || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Regente:</strong> ${record.conductor || '—'}</p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e8b9f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #16a085; padding-bottom: 10px;">◦ Abertura</h3>
+            <div style="margin-left: 20px;">
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Hino de Abertura:</strong> ${record.openingHymn || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Oração de Abertura:</strong> ${record.openingPrayer || '—'}</p>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e8b9f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #16a085; padding-bottom: 10px;">◦ Programa</h3>
+            <div style="margin-left: 20px;">
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Testemunho:</strong> ${record.testimony || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Mensagem:</strong> ${record.message || '—'}</p>
+              ${record.specialPresentation ? `<p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Apresentação Especial:</strong> ${record.specialPresentation}</p>` : ''}
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e8b9f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #16a085; padding-bottom: 10px;">◦ Ordenança Batismal</h3>
+            <div style="margin-left: 20px;">
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Pessoa Batizada:</strong> ${record.personBeingBaptized || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Oficiante do Batismo:</strong> ${record.personPerformingBaptism || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Local do Batismo:</strong> ${record.baptismLocation === 'baptism-room' ? 'Sala de Batismo' : 'Mesma Sala da Reunião'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Primeira Testemunha:</strong> ${record.witnesses[0] || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Segunda Testemunha:</strong> ${record.witnesses[1] || '—'}</p>
+            </div>
+          </div>
+          
+          ${record.welcomeOrganizations && record.welcomeOrganizations.length > 0 ? `
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e8b9f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #16a085; padding-bottom: 10px;">◦ Boas-vindas das Organizações</h3>
+            <div style="margin-left: 20px;">
+              ${record.welcomeOrganizations.map((org: any) => `
+                <div style="margin-bottom: 15px; padding: 15px; background: #e0f2f7; border-radius: 8px;">
+                  <p style="margin-bottom: 5px;"><strong style="color: #1e8b9f;">Organização:</strong> ${org.organizationName || '—'}</p>
+                  <p><strong style="color: #1e8b9f;">Boas-vindas dada por:</strong> ${org.welcomeGivenBy || '—'}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+          
+          <div style="margin-bottom: 30px;">
+            <h3 style="color: #1e8b9f; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #16a085; padding-bottom: 10px;">◦ Encerramento</h3>
+            <div style="margin-left: 20px;">
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Hino de Encerramento:</strong> ${record.closingHymn || '—'}</p>
+              <p style="margin-bottom: 10px;"><strong style="color: #1e8b9f;">Oração de Encerramento:</strong> ${record.closingPrayer || '—'}</p>
+            </div>
+          </div>
+          
+          <div style="margin-top: 60px; padding-top: 30px; border-top: 2px solid #16a085; text-align: center; font-size: 12px; color: #1e8b9f; opacity: 0.7;">
+            <p>Documento gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+            <p style="margin-top: 10px;">Sistema de Atas - Ala Casa Grande</p>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(tempDiv);
+      
+      // Gerar PDF
+      const { generatePDF } = await import('@/lib/utils');
+      const filename = `ata-batismal-${record.date.replace(/\//g, '-')}.pdf`;
+      await generatePDF(tempDiv, filename);
+      
+      // Remover elemento temporário
+      document.body.removeChild(tempDiv);
+      
+      toast.success('✅ Download feito com sucesso', { duration: 2000 });
+    } catch (error) {
+      toast.error('❌ Erro ao gerar PDF');
+      console.error(error);
+    }
   };
 
   return (
@@ -236,18 +327,11 @@ export default function BaptismalHistory() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button
-                      onClick={() => handleViewRecord(record)}
-                      className="bg-white border-2 border-[#1e8b9f] text-[#1e8b9f] hover:bg-[#1e8b9f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
-                    >
-                      <Eye size={16} />
-                      Ver
-                    </Button>
-                    <Button
                       onClick={() => handleDownloadRecord(record)}
                       className="bg-white border-2 border-[#1e8b9f] text-[#1e8b9f] hover:bg-[#1e8b9f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
                     >
                       <Download size={16} />
-                      Baixar
+                      Baixar PDF
                     </Button>
                     <Button
                       onClick={() => handleDeleteRecord(record.id!)}
