@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { SacramentalRecord } from '@/types';
 import { ArrowLeft, Download, Edit2 } from 'lucide-react';
-import { useLocation, useRoute } from 'wouter';
+import { useLocation, useParams } from 'wouter';
 import { toast } from 'sonner';
 import { formatDate, generatePDF, isFirstSunday } from '@/lib/utils';
 import { getRecordFromCloud } from '@/lib/firestore';
@@ -17,13 +17,15 @@ export default function View() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
-  const [match, params] = useRoute('/sacramental/view/:id');
+  const params = useParams<{ id: string }>();
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadRecord = async () => {
-      if (!match || !params?.id) {
-        console.error('[View] Match ou ID não encontrado:', { match, params });
+      const recordId = params.id;
+      
+      if (!recordId) {
+        console.error('[View] ID não encontrado nos params:', params);
         toast.error('ID da ata não encontrado');
         setLocation('/sacramental/history');
         return;
@@ -31,8 +33,8 @@ export default function View() {
 
       try {
         setIsLoading(true);
-        console.log('[View] Carregando ata com ID:', params.id);
-        const data = await getRecordFromCloud(params.id);
+        console.log('[View] Carregando ata com ID:', recordId);
+        const data = await getRecordFromCloud(recordId);
         console.log('[View] Ata carregada:', data);
         
         if (!data) {
@@ -54,7 +56,7 @@ export default function View() {
     };
 
     loadRecord();
-  }, [match, params, setLocation]);
+  }, [params.id, setLocation]);
 
   if (isLoading) {
     return (
