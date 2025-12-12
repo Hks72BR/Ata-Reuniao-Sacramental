@@ -124,7 +124,7 @@ export default function View() {
         <div className="container max-w-4xl mx-auto py-4 px-4 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <Button
-              onClick={() => setLocation('/history')}
+              onClick={() => setLocation('/sacramental/history')}
               className="bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
             >
               <ArrowLeft size={18} />
