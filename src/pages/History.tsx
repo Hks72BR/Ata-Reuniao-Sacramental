@@ -30,6 +30,12 @@ export default function History() {
       console.log('[History] Carregando atas...');
       const allRecords = await getAllRecords();
       console.log('[History] Atas carregadas:', allRecords.length, allRecords);
+      
+      // Debug: Ver estrutura completa das atas
+      if (allRecords.length > 0) {
+        console.log('[History] Primeira ata completa:', JSON.stringify(allRecords[0], null, 2));
+      }
+      
       setRecords(allRecords);
       setFilteredRecords(allRecords);
       

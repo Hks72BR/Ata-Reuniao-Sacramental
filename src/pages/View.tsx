@@ -23,6 +23,7 @@ export default function View() {
   useEffect(() => {
     const loadRecord = async () => {
       if (!match || !params?.id) {
+        console.error('[View] Match ou ID não encontrado:', { match, params });
         toast.error('ID da ata não encontrado');
         setLocation('/sacramental/history');
         return;
@@ -30,18 +31,22 @@ export default function View() {
 
       try {
         setIsLoading(true);
+        console.log('[View] Carregando ata com ID:', params.id);
         const data = await getRecordFromCloud(params.id);
+        console.log('[View] Ata carregada:', data);
         
         if (!data) {
+          console.error('[View] Ata não encontrada no Firebase');
           toast.error('Ata não encontrada');
           setLocation('/404');
           return;
         }
         
         setRecord(data);
+        console.log('[View] Record setado com sucesso');
       } catch (error) {
-        console.error('Erro ao carregar ata:', error);
-        toast.error('Erro ao carregar ata');
+        console.error('[View] Erro ao carregar ata:', error);
+        toast.error(`Erro ao carregar ata: ${error}`);
         setLocation('/sacramental/history');
       } finally {
         setIsLoading(false);

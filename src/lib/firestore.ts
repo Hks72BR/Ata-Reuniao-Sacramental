@@ -107,18 +107,22 @@ export async function getAllRecordsFromCloud(): Promise<SacramentalRecord[]> {
  */
 export async function getRecordFromCloud(id: string): Promise<SacramentalRecord | null> {
   try {
+    console.log('[Firestore] Buscando ata com ID:', id);
     const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
-      return {
+      const data = {
         id: docSnap.id,
         ...convertTimestamps(docSnap.data())
       } as SacramentalRecord;
+      console.log('[Firestore] Ata encontrada:', data);
+      return data;
     }
+    console.warn('[Firestore] Ata não existe no Firebase');
     return null;
   } catch (error) {
-    console.error('Erro ao buscar ata do Firestore:', error);
+    console.error('[Firestore] Erro ao buscar ata do Firestore:', error);
     throw error;
   }
 }
