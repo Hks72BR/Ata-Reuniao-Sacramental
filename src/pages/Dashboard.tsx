@@ -177,6 +177,7 @@ export default function Dashboard() {
         description={AUTH_CONFIG.SACRAMENTAL_DESCRIPTION}
         correctPin={AUTH_CONFIG.SACRAMENTAL_PIN}
         storageKey={AUTH_CONFIG.SACRAMENTAL_SESSION_KEY}
+        timestampKey={AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY}
       />
 
       <PinAuthModal
@@ -187,6 +188,7 @@ export default function Dashboard() {
         description={AUTH_CONFIG.BAPTISMAL_DESCRIPTION}
         correctPin={AUTH_CONFIG.BAPTISMAL_PIN}
         storageKey={AUTH_CONFIG.BAPTISMAL_SESSION_KEY}
+        timestampKey={AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY}
       />
     </div>
   );
