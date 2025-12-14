@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { BaptismalRecord } from '@/types';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, Edit2 } from 'lucide-react';
 import { useLocation, useParams } from 'wouter';
 import { toast } from 'sonner';
 import { formatDate, generatePDF } from '@/lib/utils';
@@ -94,6 +94,13 @@ export default function BaptismalView() {
     }
   };
 
+  const handleEdit = () => {
+    // Salvar registro em localStorage para edição
+    localStorage.setItem('baptismalRecord', JSON.stringify(record));
+    toast.success('Carregando para edição...', { duration: 1000 });
+    setLocation('/baptismal');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-teal-50">
       {/* Header */}
@@ -110,6 +117,13 @@ export default function BaptismalView() {
             <h1 className="text-2xl font-bold text-white font-['Playfair_Display']">Visualizar Ata Batismal</h1>
           </div>
           <div className="flex gap-2">
+            <Button
+              onClick={handleEdit}
+              className="bg-white border-2 border-[#16a085] text-[#1e8b9f] hover:bg-[#16a085] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
+            >
+              <Edit2 size={16} />
+              Editar
+            </Button>
             <Button
               onClick={handleDownload}
               disabled={isGeneratingPDF}

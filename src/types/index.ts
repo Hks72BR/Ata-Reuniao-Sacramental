@@ -7,6 +7,7 @@ export interface SacramentalRecord {
   id?: string;
   date: string; // ISO date format
   meetingType?: 'regular' | 'testimony'; // Tipo de reunião
+  attendance?: number; // Frequência da reunião
   
   // Presidência e Direção
   presidedBy: string; // Apenas letras
@@ -140,6 +141,7 @@ export interface FormErrors {
 
 export const SACRAMENTAL_RECORD_INITIAL: Partial<SacramentalRecord> = {
   date: new Date().toISOString().split('T')[0],
+  attendance: undefined,
   presidedBy: '',
   directedBy: '',
   recognitions: '',

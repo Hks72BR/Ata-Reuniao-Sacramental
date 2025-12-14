@@ -25,6 +25,18 @@ export default function BaptismalHome() {
       setLocation('/');
       return;
     }
+
+    // Carregar ata salva em localStorage (se existir) para edição
+    const savedRecord = localStorage.getItem('baptismalRecord');
+    if (savedRecord) {
+      try {
+        const parsed = JSON.parse(savedRecord);
+        setRecord(parsed);
+        toast.success('Ata carregada para edição', { duration: 2000 });
+      } catch (error) {
+        console.error('Erro ao carregar ata salva:', error);
+      }
+    }
   }, [setLocation]);
 
   const handleInputChange = (field: keyof BaptismalRecord, value: any) => {
@@ -104,6 +116,9 @@ export default function BaptismalHome() {
       if (!record.id || !record.id.startsWith('ata-')) {
         setRecord({ ...recordToSave, id: savedId });
       }
+
+      // Limpar localStorage após salvar com sucesso
+      localStorage.removeItem('baptismalRecord');
     } catch (error) {
       console.error('Erro ao salvar:', error);
       toast.error('❌ Erro ao salvar ata batismal');
@@ -112,6 +127,15 @@ export default function BaptismalHome() {
 
   const handleDownload = () => {
     toast.info('Funcionalidade de download em desenvolvimento');
+  };
+
+  const handleNewRecord = () => {
+    if (confirm('Deseja criar uma nova ata batismal? Os dados atuais serão perdidos se não forem salvos.')) {
+      setRecord(BAPTISMAL_RECORD_INITIAL as BaptismalRecord);
+      setErrors({});
+      localStorage.removeItem('baptismalRecord');
+      toast.success('Nova ata batismal criada');
+    }
   };
 
   const getBaptismInstructionText = () => {
@@ -193,6 +217,13 @@ export default function BaptismalHome() {
           >
             <History size={18} />
             Histórico
+          </Button>
+          <Button
+            onClick={handleNewRecord}
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#16a085] text-[#1e8b9f] hover:bg-[#16a085] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+          >
+            <Plus size={18} />
+            Nova Ata
           </Button>
         </div>
 

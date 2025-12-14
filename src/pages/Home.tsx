@@ -300,11 +300,11 @@ export default function Home() {
 
         {/* Form Sections */}
         <div className="p-6 md:p-8 space-y-8">
-          {/* Data */}
+          {/* Data e Frequência */}
           <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md">
             <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
               <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
-              Data
+              Data e Frequência
             </h3>
             <InputField
               type="date"
@@ -313,6 +313,14 @@ export default function Home() {
               onChange={(e) => handleInputChange('date', e.target.value)}
               required
               error={errors.date}
+            />
+            <InputField
+              type="number"
+              label="Frequência"
+              value={record.attendance?.toString() || ''}
+              onChange={(e) => handleInputChange('attendance', e.target.value ? parseInt(e.target.value) : undefined)}
+              placeholder="Ex: 200"
+              helperText="Número de pessoas presentes na reunião"
             />
           </div>
 

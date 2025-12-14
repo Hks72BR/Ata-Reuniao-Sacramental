@@ -161,6 +161,11 @@ export default function View() {
               Ata Sacramental
             </h2>
             <p className="text-xl text-[#1e3a5f]/80 font-['Poppins']">{formatDate(record.date)}</p>
+            {record.attendance && (
+              <p className="text-lg text-[#1e3a5f]/70 font-['Poppins'] mt-2">
+                Frequência: {record.attendance} pessoas
+              </p>
+            )}
             <span
               className={`inline-block mt-4 text-xs px-3 py-1 rounded-full font-semibold ${
                 record.status === 'completed'
