@@ -29,7 +29,7 @@ export function PinAuthModal({
   storageKey,
   timestampKey,
 }: PinAuthModalProps) {
-  const [pin, setPin] = useState(['', '', '', '', '', '']);
+  const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState('');
   const [isShaking, setIsShaking] = useState(false);
   const [lockoutInfo, setLockoutInfo] = useState<{ locked: boolean; remainingTime?: number }>({ locked: false });
@@ -71,16 +71,16 @@ export function PinAuthModal({
     setError('');
 
     // Mover para o próximo input automaticamente
-    if (value && index < 5) {
+    if (value && index < 3) {
       const nextInput = document.getElementById(`pin-${index + 1}`);
       if (nextInput) {
         nextInput.focus();
       }
     }
 
-    // Verificar PIN quando completar os 6 dígitos
-    if (index === 5 && value) {
-      const enteredPin = [...newPin.slice(0, 5), value].join('');
+    // Verificar PIN quando completar os 4 dígitos
+    if (index === 3 && value) {
+      const enteredPin = [...newPin.slice(0, 3), value].join('');
       checkPin(enteredPin);
     }
   };
@@ -102,9 +102,9 @@ export function PinAuthModal({
       return;
     }
 
-    const pastedData = e.clipboardData.getData('text').slice(0, 6);
+    const pastedData = e.clipboardData.getData('text').slice(0, 4);
     
-    if (/^\d{6}$/.test(pastedData)) {
+    if (/^\d{4}$/.test(pastedData)) {
       const newPin = pastedData.split('');
       setPin(newPin);
       checkPin(pastedData);

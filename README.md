@@ -47,6 +47,31 @@ ata-sacramental-app/
 
 ## 🚀 Como Usar
 
+### Configuração de Senhas
+
+**IMPORTANTE:** Configure as senhas personalizadas antes de usar em produção.
+
+1. **Para desenvolvimento local:**
+   ```bash
+   # Copie o arquivo de exemplo
+   cp .env.example .env
+   
+   # Edite o arquivo .env e configure suas senhas de 4 dígitos
+   # VITE_SACRAMENTAL_PIN=2026
+   # VITE_BAPTISMAL_PIN=2025
+   ```
+
+2. **Para produção no Vercel:**
+   - Acesse: Vercel Dashboard > Settings > Environment Variables
+   - Adicione:
+     - `VITE_SACRAMENTAL_PIN` = sua senha de 4 dígitos (ex: `2026`)
+     - `VITE_BAPTISMAL_PIN` = sua senha de 4 dígitos (ex: `2025`)
+   - Selecione: Production, Preview, Development
+   - **Faça Redeploy** após configurar
+
+   📖 Veja o guia detalhado em [SEGURANCA.md](SEGURANCA.md)
+   🔧 Problemas? Consulte [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
 ### Instalação
 
 1. **Instale as dependências:**

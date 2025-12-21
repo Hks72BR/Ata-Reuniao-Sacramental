@@ -42,7 +42,7 @@ cp .env.example .env
 ### 2. Editar `.env` com suas credenciais
 
 ```env
-# PINs de Acesso
+# PINs de Acesso (4 dígitos)
 VITE_SACRAMENTAL_PIN=2026
 VITE_BAPTISMAL_PIN=2025
 
