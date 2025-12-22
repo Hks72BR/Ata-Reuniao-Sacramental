@@ -100,7 +100,7 @@ export default function BaptismalHistory() {
         <div className="container max-w-4xl mx-auto py-8 px-4">
           <div className="flex items-center gap-4 mb-6">
             <Button
-              onClick={() => setLocation('/')}
+              onClick={() => setLocation('/baptismal')}
               className="bg-white border-2 border-[#16a085] text-[#1e8b9f] hover:bg-[#16a085] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
             >
               <ArrowLeft size={18} />

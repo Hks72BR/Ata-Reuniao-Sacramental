@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
+import { BaptismalErrorModal } from '@/components/BaptismalErrorModal';
 import { BaptismalRecord, WelcomeOrganizationItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ import { saveBaptismalRecordToCloud } from '@/lib/baptismalFirestore';
 export default function BaptismalHome() {
   const [record, setRecord] = useState<BaptismalRecord>(BAPTISMAL_RECORD_INITIAL as BaptismalRecord);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
 
@@ -87,6 +89,12 @@ export default function BaptismalHome() {
 
   const handleSave = async () => {
     try {
+      // Verificar se há erros de validação pendentes
+      if (Object.keys(errors).length > 0) {
+        setShowErrorModal(true);
+        return;
+      }
+      
       // Validações básicas
       if (!record.date) {
         toast.error('Data é obrigatória');
@@ -126,6 +134,12 @@ export default function BaptismalHome() {
   };
 
   const handleDownload = () => {
+    // Verificar se há erros de validação pendentes
+    if (Object.keys(errors).length > 0) {
+      setShowErrorModal(true);
+      return;
+    }
+    
     toast.info('Funcionalidade de download em desenvolvimento');
   };
 
@@ -494,6 +508,13 @@ export default function BaptismalHome() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Erro */}
+      <BaptismalErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        message="Por favor, corrija os erros na Ata Batismal antes de salvar ou baixar."
+      />
     </div>
   );
 }

@@ -165,6 +165,13 @@ export function isOnlyLetters(str: string): boolean {
 }
 
 /**
+ * Validar reconhecimentos (permite letras, espaços, parênteses e hífen)
+ */
+export function isValidRecognitions(str: string): boolean {
+  return /^[a-zA-ZáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ\s()\-]*$/.test(str);
+}
+
+/**
  * Validar formulário completo
  */
 export function validateRecord(record: Partial<SacramentalRecord>): FormErrors {
@@ -183,8 +190,8 @@ export function validateRecord(record: Partial<SacramentalRecord>): FormErrors {
   }
 
   // Validar recognitions
-  if (record.recognitions && !isOnlyLetters(record.recognitions)) {
-    errors.recognitions = 'Apenas letras são permitidas';
+  if (record.recognitions && !isValidRecognitions(record.recognitions)) {
+    errors.recognitions = 'Apenas letras, parênteses () e hífen - são permitidos';
   }
 
   // Validar pianist

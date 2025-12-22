@@ -10,6 +10,7 @@ import { InputField, TextAreaField } from '@/components/FormField';
 import { SupportAndReleaseSection } from '@/components/SupportAndReleaseSection';
 import { OrdinancesSection } from '@/components/OrdinancesSection';
 import { CallingDesignationsSection } from '@/components/CallingDesignationsSection';
+import { ErrorModal } from '@/components/ErrorModal';
 import { SacramentalRecord, SupportAndReleaseItem, OrdinanceItem, CallingDesignationItem, SACRAMENTAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History } from 'lucide-react';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ export default function Home() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [announcementsLength, setAnnouncementsLength] = useState(0);
   const [testimoniesLength, setTestimoniesLength] = useState(0);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
   
@@ -129,9 +131,7 @@ export default function Home() {
     const validationErrors = validateRecord(record);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      toast.error('⚠️ Por favor, corrija os erros no formulário', {
-        duration: 3000,
-      });
+      setShowErrorModal(true);
       return;
     }
 
@@ -176,9 +176,7 @@ export default function Home() {
     const validationErrors = validateRecord(record);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      toast.error('⚠️ Por favor, corrija os erros no formulário', {
-        duration: 3000,
-      });
+      setShowErrorModal(true);
       return;
     }
 
@@ -586,6 +584,13 @@ export default function Home() {
           <p className="mt-2">Desenvolvido com reverência e dedicação</p>
         </div>
       </footer>
+
+      {/* Modal de Erro */}
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        message="Por favor, corrija os erros na Ata antes de salvar ou baixar."
+      />
     </div>
   );
 }
