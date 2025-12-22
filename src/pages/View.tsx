@@ -155,6 +155,34 @@ export default function View() {
       {/* Main Content */}
       <div className="container max-w-4xl mx-auto py-12 px-4">
         <div ref={contentRef} className="bg-white border-l-4 border-[#d4a574] rounded-lg p-8 shadow-md">
+          {/* Log de Alterações */}
+          {(record.createdBy || record.lastEditedBy) && (
+            <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 rounded-lg">
+              <h3 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                Histórico de Modificações
+              </h3>
+              <div className="text-sm space-y-1">
+                {record.createdBy && (
+                  <p className="text-blue-800">
+                    <span className="font-semibold">Criado por:</span> {record.createdBy}
+                    <span className="text-blue-600 ml-2 text-xs">
+                      {new Date(record.createdAt).toLocaleString('pt-BR')}
+                    </span>
+                  </p>
+                )}
+                {record.lastEditedBy && record.lastEditedAt && (
+                  <p className="text-blue-800">
+                    <span className="font-semibold">Última edição por:</span> {record.lastEditedBy}
+                    <span className="text-blue-600 ml-2 text-xs">
+                      {new Date(record.lastEditedAt).toLocaleString('pt-BR')}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Título e Data */}
           <div className="text-center mb-12 pb-8 border-b-2 border-[#d4a574]">
             <h2 className="text-4xl font-bold text-[#1e3a5f] font-['Playfair_Display'] mb-4">

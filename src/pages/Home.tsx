@@ -11,6 +11,7 @@ import { SupportAndReleaseSection } from '@/components/SupportAndReleaseSection'
 import { OrdinancesSection } from '@/components/OrdinancesSection';
 import { CallingDesignationsSection } from '@/components/CallingDesignationsSection';
 import { ErrorModal } from '@/components/ErrorModal';
+import { UserIdentificationModal } from '@/components/UserIdentificationModal';
 import { SacramentalRecord, SupportAndReleaseItem, OrdinanceItem, CallingDesignationItem, SACRAMENTAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,6 +27,7 @@ export default function Home() {
   const [announcementsLength, setAnnouncementsLength] = useState(0);
   const [testimoniesLength, setTestimoniesLength] = useState(0);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
   
@@ -135,8 +137,18 @@ export default function Home() {
       return;
     }
 
+    // Mostrar modal de identificação
+    setShowUserModal(true);
+  };
+
+  const handleUserConfirm = async (userName: string) => {
+    setShowUserModal(false);
+
     const updatedRecord = {
       ...record,
+      createdBy: record.id ? record.createdBy : userName, // Manter criador original se já existe
+      lastEditedBy: userName,
+      lastEditedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: 'completed' as const,
     };
@@ -149,7 +161,7 @@ export default function Home() {
       localStorage.setItem('sacramentalRecord', JSON.stringify(updatedRecord));
       
       setRecord({ ...updatedRecord, id });
-      toast.success('✅ ATA SALVA COM SUCESSO, FAVOR CONSULTAR HISTÓRICO', {
+      toast.success(`✅ ATA SALVA POR ${userName.toUpperCase()}`, {
         duration: 2000,
       });
     } catch (error) {
@@ -601,6 +613,14 @@ export default function Home() {
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         message="Por favor, corrija os erros na Ata antes de salvar ou baixar."
+      />
+
+      {/* Modal de Identificação */}
+      <UserIdentificationModal
+        isOpen={showUserModal}
+        onConfirm={handleUserConfirm}
+        onCancel={() => setShowUserModal(false)}
+        action={record.id ? 'editar' : 'criar'}
       />
     </div>
   );

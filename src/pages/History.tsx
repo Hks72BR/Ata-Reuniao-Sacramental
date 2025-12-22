@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
+import { UserIdentificationModal } from '@/components/UserIdentificationModal';
 import { getAllRecords, searchRecordsByDate, deleteRecord } from '@/lib/db';
 import { SacramentalRecord } from '@/types';
 import { Eye, Trash2, Search, Calendar, ArrowLeft } from 'lucide-react';
@@ -18,6 +19,8 @@ export default function History() {
   const [filteredRecords, setFilteredRecords] = useState<SacramentalRecord[]>([]);
   const [searchDate, setSearchDate] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -78,15 +81,29 @@ export default function History() {
       return;
     }
 
+    // Pedir identificação antes de excluir
+    setRecordToDelete(id);
+    setShowUserModal(true);
+  };
+
+  const handleUserConfirmDelete = async (userName: string) => {
+    setShowUserModal(false);
+    
+    if (!recordToDelete) return;
+
     try {
-      await deleteRecord(id);
-      toast.success('✅ Ata deletada com sucesso', {
+      // TODO: Salvar informação de quem excluiu antes de deletar
+      // Poderia implementar soft delete aqui salvando deletedBy
+      await deleteRecord(recordToDelete);
+      toast.success(`✅ Ata deletada por ${userName.toUpperCase()}`, {
         duration: 2000,
       });
       await loadRecords();
     } catch (error) {
       toast.error('❌ Erro ao deletar ata');
       console.error(error);
+    } finally {
+      setRecordToDelete(null);
     }
   };
 
@@ -267,6 +284,17 @@ export default function History() {
           </div>
         )}
       </div>
+
+      {/* Modal de Identificação */}
+      <UserIdentificationModal
+        isOpen={showUserModal}
+        onConfirm={handleUserConfirmDelete}
+        onCancel={() => {
+          setShowUserModal(false);
+          setRecordToDelete(null);
+        }}
+        action="excluir"
+      />
     </div>
   );
 }

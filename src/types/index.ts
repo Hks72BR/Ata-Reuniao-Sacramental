@@ -57,6 +57,12 @@ export interface SacramentalRecord {
   createdAt: string;
   updatedAt: string;
   status: 'draft' | 'completed' | 'archived';
+  
+  // Log de alterações
+  createdBy?: string; // Nome de quem criou
+  lastEditedBy?: string; // Nome de quem editou por último
+  lastEditedAt?: string; // Data/hora da última edição
+  deletedBy?: string; // Nome de quem excluiu (para soft delete futuro)
 }
 
 export interface SupportAndReleaseItem {
