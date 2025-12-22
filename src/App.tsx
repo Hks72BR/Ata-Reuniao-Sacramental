@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import History from "./pages/History";
 import View from "./pages/View";
+import SpeakerStats from "./pages/SpeakerStats";
 import BaptismalHome from "./pages/baptismal/BaptismalHome";
 import BaptismalHistory from "./pages/baptismal/BaptismalHistory";
 import BaptismalView from "./pages/baptismal/BaptismalView";
@@ -23,6 +24,7 @@ function Router() {
       <Route path={"/"} component={Dashboard} />
       <Route path={"/sacramental"} component={Home} />
       <Route path={"/sacramental/history"} component={History} />
+      <Route path={"/sacramental/stats"} component={SpeakerStats} />
       <Route path={"/sacramental/view/:id"} component={View} />
       <Route path={"/baptismal"} component={BaptismalHome} />
       <Route path={"/baptismal/history"} component={BaptismalHistory} />

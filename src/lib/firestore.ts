@@ -188,3 +188,37 @@ export function subscribeToRecords(
 
   return unsubscribe;
 }
+
+/**
+ * Salvar lista de membros da ala no Firestore
+ */
+export async function saveMembersListToCloud(members: string[]): Promise<void> {
+  try {
+    const membersDocRef = doc(db, 'wardMembers', 'currentMembers');
+    await setDoc(membersDocRef, {
+      members,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Erro ao salvar lista de membros:', error);
+    throw error;
+  }
+}
+
+/**
+ * Carregar lista de membros da ala do Firestore
+ */
+export async function getMembersListFromCloud(): Promise<string[]> {
+  try {
+    const membersDocRef = doc(db, 'wardMembers', 'currentMembers');
+    const docSnap = await getDoc(membersDocRef);
+    
+    if (docSnap.exists()) {
+      return docSnap.data().members || [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Erro ao carregar lista de membros:', error);
+    throw error;
+  }
+}

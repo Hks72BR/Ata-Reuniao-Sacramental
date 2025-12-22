@@ -12,7 +12,7 @@ import { OrdinancesSection } from '@/components/OrdinancesSection';
 import { CallingDesignationsSection } from '@/components/CallingDesignationsSection';
 import { ErrorModal } from '@/components/ErrorModal';
 import { SacramentalRecord, SupportAndReleaseItem, OrdinanceItem, CallingDesignationItem, SACRAMENTAL_RECORD_INITIAL } from '@/types';
-import { Download, Save, Plus, History } from 'lucide-react';
+import { Download, Save, Plus, History, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { saveRecord, initDB } from '@/lib/db';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
@@ -201,6 +201,10 @@ export default function Home() {
     setLocation('/sacramental/history');
   };
 
+  const handleViewStats = () => {
+    setLocation('/sacramental/stats');
+  };
+
   const handleBackToMenu = () => {
     logout(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY);
     setLocation('/');
@@ -286,6 +290,13 @@ export default function Home() {
           >
             <History size={18} />
             Histórico
+          </Button>
+          <Button
+            onClick={handleViewStats}
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+          >
+            <TrendingUp size={18} />
+            Estatísticas
           </Button>
           <Button
             onClick={handleNewRecord}
