@@ -6,7 +6,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { BaptismalErrorModal } from '@/components/BaptismalErrorModal';
-import { BaptismalRecord, WelcomeOrganizationItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
+import { OrdinancesSection } from '@/components/OrdinancesSection';
+import { BaptismalRecord, OrdinanceItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
@@ -58,32 +59,10 @@ export default function BaptismalHome() {
     setRecord((prev) => ({ ...prev, witnesses: newWitnesses }));
   };
 
-  const addWelcomeOrganization = () => {
-    const newOrg: WelcomeOrganizationItem = {
-      id: Date.now().toString(),
-      organizationName: '',
-      welcomeGivenBy: '',
-      notes: '',
-    };
+  const handleOrdinancesChange = (items: OrdinanceItem[]) => {
     setRecord((prev) => ({
       ...prev,
-      welcomeOrganizations: [...prev.welcomeOrganizations, newOrg],
-    }));
-  };
-
-  const updateWelcomeOrganization = (id: string, field: keyof WelcomeOrganizationItem, value: string) => {
-    setRecord((prev) => ({
-      ...prev,
-      welcomeOrganizations: prev.welcomeOrganizations.map((org) =>
-        org.id === id ? { ...org, [field]: value } : org
-      ),
-    }));
-  };
-
-  const removeWelcomeOrganization = (id: string) => {
-    setRecord((prev) => ({
-      ...prev,
-      welcomeOrganizations: prev.welcomeOrganizations.filter((org) => org.id !== id),
+      ordinances: items,
     }));
   };
 
@@ -425,56 +404,13 @@ export default function BaptismalHome() {
             </div>
           </div>
 
-          {/* Boas Vindas das Organizações */}
+          {/* Ordenanças - Confirmação de Batismo */}
           <div className="bg-white p-6 rounded-xl border-l-4 border-[#16a085] shadow-md">
-            <h3 className="text-xl font-bold text-[#1e8b9f] mb-4 font-playfair">
-              Boas Vindas das Organizações
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Ex: Se for uma moça, a presidência das moças dá as boas vindas
-            </p>
-
-            <div className="space-y-4 mb-4">
-              {record.welcomeOrganizations.map((org) => (
-                <div key={org.id} className="p-4 bg-gradient-to-br from-cyan-50 to-teal-50 rounded-lg border border-[#16a085]/30">
-                  <div className="flex justify-end mb-2">
-                    <button
-                      onClick={() => removeWelcomeOrganization(org.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  <InputField
-                    label="Organização"
-                    value={org.organizationName}
-                    onChange={(e) => updateWelcomeOrganization(org.id, 'organizationName', e.target.value)}
-                    placeholder="Ex: Presidência das Moças"
-                  />
-                  <InputField
-                    label="Boas Vindas Dada Por"
-                    value={org.welcomeGivenBy}
-                    onChange={(e) => updateWelcomeOrganization(org.id, 'welcomeGivenBy', e.target.value)}
-                    placeholder="Nome de quem deu as boas vindas"
-                  />
-                  <InputField
-                    label="Observações (opcional)"
-                    value={org.notes || ''}
-                    onChange={(e) => updateWelcomeOrganization(org.id, 'notes', e.target.value)}
-                    placeholder="Informações adicionais"
-                  />
-                </div>
-              ))}
-            </div>
-
-            <Button
-              type="button"
-              onClick={addWelcomeOrganization}
-              className="w-full bg-white border-2 border-[#1e8b9f] text-[#1e8b9f] hover:bg-[#1e8b9f] hover:text-white transition-all duration-300"
-            >
-              <Plus size={18} className="mr-2" />
-              Adicionar Boas Vindas
-            </Button>
+            <OrdinancesSection
+              items={record.ordinances}
+              onItemsChange={handleOrdinancesChange}
+              errors={errors}
+            />
           </div>
 
           {/* Encerramento */}

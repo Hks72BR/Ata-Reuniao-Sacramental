@@ -121,8 +121,8 @@ export interface BaptismalRecord {
   personPerformingBaptism: string; // Quem realiza a ordenança
   witnesses: string[]; // Testemunhas do batismo (array de nomes)
   
-  // Boas Vindas
-  welcomeOrganizations: WelcomeOrganizationItem[]; // Boas vindas das organizações
+  // Ordenanças (Confirmação de Batismo)
+  ordinances: OrdinanceItem[]; // Confirmações de batismo e outras ordenanças
   
   // Encerramento
   closingHymn: string;
@@ -185,7 +185,7 @@ export const BAPTISMAL_RECORD_INITIAL: Partial<BaptismalRecord> = {
   personBeingBaptized: '',
   personPerformingBaptism: '',
   witnesses: ['', ''],
-  welcomeOrganizations: [],
+  ordinances: [],
   closingHymn: '',
   closingPrayer: '',
   status: 'draft',

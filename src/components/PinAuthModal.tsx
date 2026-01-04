@@ -222,7 +222,7 @@ export function PinAuthModal({
         {!lockoutInfo.locked && (
           <div className="space-y-2">
             <p className="text-xs text-center text-gray-500">
-              Digite o PIN de 6 dígitos para acessar
+              Digite o PIN de 4 dígitos para acessar
             </p>
             {remainingAttempts < 5 && (
               <p className="text-xs text-center text-orange-600 font-semibold">

@@ -184,12 +184,26 @@ export default function BaptismalView() {
               <Field label="Segunda Testemunha" value={record.witnesses[1]} />
             </Section>
 
-            {record.welcomeOrganizations && record.welcomeOrganizations.length > 0 && (
-              <Section title="Boas-vindas das Organizações">
-                {record.welcomeOrganizations.map((org, index) => (
-                  <div key={org.id || index} className="mb-4 p-4 bg-cyan-50 rounded-lg">
-                    <Field label="Organização" value={org.organizationName} />
-                    <Field label="Boas-vindas dada por" value={org.welcomeGivenBy} />
+            {record.ordinances && record.ordinances.length > 0 && (
+              <Section title="Ordenanças">
+                {record.ordinances.map((ordinance, index) => (
+                  <div key={ordinance.id || index} className="mb-4 p-4 bg-gradient-to-br from-cyan-50 to-teal-50 rounded-lg border border-[#16a085]/30">
+                    <div className="mb-2">
+                      <span className="px-3 py-1 bg-[#16a085] text-white text-xs font-semibold rounded-full">
+                        {ordinance.type === 'confirmation' ? 'Confirmação de Batismo' : 'Apresentação de Criança'}
+                      </span>
+                    </div>
+                    <Field 
+                      label={ordinance.type === 'confirmation' ? 'Nome do Confirmado' : 'Nome da Criança'} 
+                      value={ordinance.fullName} 
+                    />
+                    <Field 
+                      label={ordinance.type === 'confirmation' ? 'Confirmação realizada por' : 'Bênção realizada por'} 
+                      value={ordinance.performedBy} 
+                    />
+                    {ordinance.notes && (
+                      <Field label="Observações" value={ordinance.notes} />
+                    )}
                   </div>
                 ))}
               </Section>
