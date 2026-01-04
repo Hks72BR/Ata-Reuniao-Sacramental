@@ -18,44 +18,16 @@ const SESSION_TIMEOUT = 8 * 60 * 60 * 1000;
 const MAX_ATTEMPTS = 5; // Máximo de tentativas
 const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos de bloqueio
 
-// Debug: Verificar se as variáveis estão sendo carregadas
-const SACRAMENTAL_PIN_FROM_ENV = import.meta.env.VITE_SACRAMENTAL_PIN;
-const BAPTISMAL_PIN_FROM_ENV = import.meta.env.VITE_BAPTISMAL_PIN;
-
-// Validar formato dos PINs (devem ter exatamente 4 dígitos)
-function validatePin(pin: string | undefined, name: string): string {
-  const fallback = name === 'SACRAMENTAL' ? '2026' : '2025';
-  
-  if (!pin) {
-    if (import.meta.env.DEV) {
-      console.warn(`⚠️ ${name}_PIN não configurado, usando fallback: ${fallback}`);
-    }
-    return fallback;
-  }
-  
-  // Verificar se tem exatamente 4 dígitos
-  if (!/^\d{4}$/.test(pin)) {
-    console.error(`❌ ${name}_PIN inválido: "${pin}" (deve ter exatamente 4 dígitos)`);
-    console.warn(`⚠️ Usando fallback: ${fallback}`);
-    return fallback;
-  }
-  
-  if (import.meta.env.DEV) {
-    console.log(`✅ ${name}_PIN configurado corretamente`);
-  }
-  
-  return pin;
-}
-
-// Log para debug (apenas em desenvolvimento)
+// PINs fixos (hardcoded)
+// Configuração simplificada sem dependência de variáveis de ambiente
 if (import.meta.env.DEV) {
-  console.log('🔐 Auth Config Debug:');
+  console.log('🔐 Auth Config - PINs fixos configurados');
 }
 
 export const AUTH_CONFIG = {
-  // PINs carregados de variáveis de ambiente com fallback para desenvolvimento
-  SACRAMENTAL_PIN: validatePin(SACRAMENTAL_PIN_FROM_ENV, 'SACRAMENTAL'),
-  BAPTISMAL_PIN: validatePin(BAPTISMAL_PIN_FROM_ENV, 'BAPTISMAL'),
+  // PINs fixos
+  SACRAMENTAL_PIN: '2026',
+  BAPTISMAL_PIN: '2015',
   
   // Chaves de sessão (não alterar)
   SACRAMENTAL_SESSION_KEY: 'sacramental_auth',
