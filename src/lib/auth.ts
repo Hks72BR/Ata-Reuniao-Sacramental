@@ -18,15 +18,43 @@ const SESSION_TIMEOUT = 8 * 60 * 60 * 1000;
 const MAX_ATTEMPTS = 5; // Máximo de tentativas
 const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos de bloqueio
 
-// PINs fixos (hardcoded)
-// Configuração simplificada sem dependência de variáveis de ambiente
+// Configuração de PINs
+// SACRAMENTAL: pega do Vercel (variável de ambiente)
+// BAPTISMAL: hardcoded no código
+const SACRAMENTAL_PIN_FROM_ENV = import.meta.env.VITE_SACRAMENTAL_PIN;
+
+// Validar PIN do Sacramental
+function validateSacramentalPin(pin: string | undefined): string {
+  const fallback = '2026';
+  
+  if (!pin) {
+    if (import.meta.env.DEV) {
+      console.warn(`⚠️ SACRAMENTAL_PIN não configurado, usando fallback: ${fallback}`);
+    }
+    return fallback;
+  }
+  
+  if (!/^\d{4}$/.test(pin)) {
+    console.error(`❌ SACRAMENTAL_PIN inválido: "${pin}" (deve ter exatamente 4 dígitos)`);
+    console.warn(`⚠️ Usando fallback: ${fallback}`);
+    return fallback;
+  }
+  
+  if (import.meta.env.DEV) {
+    console.log(`✅ SACRAMENTAL_PIN configurado corretamente`);
+  }
+  
+  return pin;
+}
+
 if (import.meta.env.DEV) {
-  console.log('🔐 Auth Config - PINs fixos configurados');
+  console.log('🔐 Auth Config - Sacramental: variável ambiente | Batismal: hardcoded');
 }
 
 export const AUTH_CONFIG = {
-  // PINs fixos
-  SACRAMENTAL_PIN: '2026',
+  // Sacramental: pega do Vercel
+  SACRAMENTAL_PIN: validateSacramentalPin(SACRAMENTAL_PIN_FROM_ENV),
+  // Batismal: hardcoded
   BAPTISMAL_PIN: '2015',
   
   // Chaves de sessão (não alterar)
