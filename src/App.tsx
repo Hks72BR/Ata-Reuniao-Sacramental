@@ -17,6 +17,9 @@ import SpeakerStats from "./pages/SpeakerStats";
 import BaptismalHome from "./pages/baptismal/BaptismalHome";
 import BaptismalHistory from "./pages/baptismal/BaptismalHistory";
 import BaptismalView from "./pages/baptismal/BaptismalView";
+import BishopricHome from "./pages/bishopric/BishopricHome";
+import BishopricHistory from "./pages/bishopric/BishopricHistory";
+import BishopricView from "./pages/bishopric/BishopricView";
 
 function Router() {
   return (
@@ -29,6 +32,9 @@ function Router() {
       <Route path={"/baptismal"} component={BaptismalHome} />
       <Route path={"/baptismal/history"} component={BaptismalHistory} />
       <Route path={"/baptismal/view/:id"} component={BaptismalView} />
+      <Route path={"/bishopric"} component={BishopricHome} />
+      <Route path={"/bishopric/history"} component={BishopricHistory} />
+      <Route path={"/bishopric/view/:id"} component={BishopricView} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

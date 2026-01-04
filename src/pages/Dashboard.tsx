@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { FileText, Droplets } from 'lucide-react';
+import { FileText, Droplets, Users } from 'lucide-react';
 import { PinAuthModal } from '@/components/PinAuthModal';
 import { AUTH_CONFIG } from '@/lib/auth';
 
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [showSacramentalAuth, setShowSacramentalAuth] = useState(false);
   const [showBaptismalAuth, setShowBaptismalAuth] = useState(false);
+  const [showBishopricAuth, setShowBishopricAuth] = useState(false);
 
   const handleSacramentalClick = () => {
     setShowSacramentalAuth(true);
@@ -20,6 +21,10 @@ export default function Dashboard() {
 
   const handleBaptismalClick = () => {
     setShowBaptismalAuth(true);
+  };
+
+  const handleBishopricClick = () => {
+    setShowBishopricAuth(true);
   };
 
   const handleSacramentalSuccess = () => {
@@ -30,6 +35,11 @@ export default function Dashboard() {
   const handleBaptismalSuccess = () => {
     setShowBaptismalAuth(false);
     setLocation('/baptismal');
+  };
+
+  const handleBishopricSuccess = () => {
+    setShowBishopricAuth(false);
+    setLocation('/bishopric');
   };
 
   return (
@@ -81,7 +91,7 @@ export default function Dashboard() {
 
       {/* Cards de Seleção - Estilo Moderno Glassmorphism */}
       <div className="container max-w-6xl mx-auto px-4 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Card Ata Sacramental */}
           <button
             onClick={handleSacramentalClick}
@@ -155,6 +165,43 @@ export default function Dashboard() {
               </div>
             </div>
           </button>
+
+          {/* Card Reunião de Bispado */}
+          <button
+            onClick={handleBishopricClick}
+            className="group relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-indigo-500/50 transition-all duration-500 hover:scale-105 hover:border-indigo-400/50 active:scale-95 p-10"
+          >
+            {/* Efeito de brilho ao passar o mouse */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/0 via-blue-400/0 to-purple-400/0 group-hover:from-indigo-400/10 group-hover:via-blue-400/5 group-hover:to-purple-400/10 transition-all duration-500"></div>
+            
+            <div className="relative z-10">
+              {/* Icon com efeito neon */}
+              <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/50 group-hover:shadow-2xl group-hover:shadow-indigo-400/60 transition-all duration-500 group-hover:rotate-6">
+                <Users size={48} className="text-white" />
+              </div>
+
+              {/* Title */}
+              <h3 className="text-3xl font-bold text-white mb-4 font-['Playfair_Display'] group-hover:text-indigo-300 transition-colors">
+                Reunião de Bispado
+              </h3>
+
+              {/* Description */}
+              <p className="text-white/70 mb-6 font-['Poppins'] text-sm leading-relaxed">
+                Reuniões administrativas, decisões e ações do bispado
+              </p>
+
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 bg-indigo-500/20 backdrop-blur-sm px-4 py-2 rounded-full border border-indigo-400/30">
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
+                <span className="text-indigo-300 text-xs font-semibold uppercase tracking-wider">Liderança</span>
+              </div>
+
+              {/* Arrow */}
+              <div className="mt-6 text-indigo-400 group-hover:translate-x-3 transition-transform duration-300 flex items-center justify-center">
+                <span className="text-3xl">→</span>
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* Footer Info */}
@@ -189,6 +236,17 @@ export default function Dashboard() {
         correctPin={AUTH_CONFIG.BAPTISMAL_PIN}
         storageKey={AUTH_CONFIG.BAPTISMAL_SESSION_KEY}
         timestampKey={AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY}
+      />
+
+      <PinAuthModal
+        isOpen={showBishopricAuth}
+        onClose={() => setShowBishopricAuth(false)}
+        onSuccess={handleBishopricSuccess}
+        title="Reunião de Bispado"
+        description="Digite o PIN para acessar as atas de reunião de bispado"
+        correctPin={AUTH_CONFIG.SACRAMENTAL_PIN}
+        storageKey={AUTH_CONFIG.SACRAMENTAL_SESSION_KEY}
+        timestampKey={AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY}
       />
     </div>
   );

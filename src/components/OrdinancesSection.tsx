@@ -11,9 +11,10 @@ interface OrdinancesSectionProps {
   items: OrdinanceItem[];
   onItemsChange: (items: OrdinanceItem[]) => void;
   errors?: { [key: string]: string };
+  showChildBlessing?: boolean; // Se true, mostra opção de apresentação de criança
 }
 
-export function OrdinancesSection({ items, onItemsChange, errors }: OrdinancesSectionProps) {
+export function OrdinancesSection({ items, onItemsChange, errors, showChildBlessing = true }: OrdinancesSectionProps) {
   const addOrdinance = (type: 'confirmation' | 'child-blessing') => {
     const newOrdinance: OrdinanceItem = {
       id: Date.now().toString(),
@@ -47,7 +48,9 @@ export function OrdinancesSection({ items, onItemsChange, errors }: OrdinancesSe
           Ordenanças
         </h3>
         <p className="text-sm text-gray-600">
-          Registre confirmações de batismo e apresentações de crianças realizadas durante a reunião
+          {showChildBlessing 
+            ? 'Registre confirmações de batismo e apresentações de crianças realizadas durante a reunião'
+            : 'Registre confirmações de batismo realizadas durante o serviço'}
         </p>
       </div>
 
@@ -118,14 +121,16 @@ export function OrdinancesSection({ items, onItemsChange, errors }: OrdinancesSe
           Adicionar Confirmação
         </Button>
         
-        <Button
-          type="button"
-          onClick={() => addOrdinance('child-blessing')}
-          className="flex-1 min-w-[200px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
-        >
-          <Plus size={18} />
-          Adicionar Apresentação
-        </Button>
+        {showChildBlessing && (
+          <Button
+            type="button"
+            onClick={() => addOrdinance('child-blessing')}
+            className="flex-1 min-w-[200px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+          >
+            <Plus size={18} />
+            Adicionar Apresentação
+          </Button>
+        )}
       </div>
     </div>
   );

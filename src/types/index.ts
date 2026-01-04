@@ -141,6 +141,44 @@ export interface WelcomeOrganizationItem {
   notes?: string;
 }
 
+// ============================================
+// TIPOS PARA ATA DE REUNIÃO DE BISPADO
+// ============================================
+
+export interface BishopricRecord {
+  id?: string;
+  date: string; // ISO date format
+  
+  // Dados básicos
+  presidedBy: string;
+  openingPrayer: string;
+  
+  // Assuntos tratados
+  discussedMatters: string; // Bloco de notas para registro
+  
+  // Ações para próxima reunião (checklist)
+  actionItems: ActionItem[];
+  
+  // Encerramento
+  closingPrayer: string;
+  
+  // Metadados
+  createdAt: string;
+  updatedAt: string;
+  status: 'draft' | 'completed' | 'archived';
+  createdBy?: string;
+  lastEditedBy?: string;
+  lastEditedAt?: string;
+}
+
+export interface ActionItem {
+  id: string;
+  description: string;
+  responsible?: string; // Responsável pela ação
+  completed: boolean;
+  notes?: string;
+}
+
 export interface FormErrors {
   [key: string]: string;
 }
@@ -187,6 +225,16 @@ export const BAPTISMAL_RECORD_INITIAL: Partial<BaptismalRecord> = {
   witnesses: ['', ''],
   ordinances: [],
   closingHymn: '',
+  closingPrayer: '',
+  status: 'draft',
+};
+
+export const BISHOPRIC_RECORD_INITIAL: Partial<BishopricRecord> = {
+  date: new Date().toISOString().split('T')[0],
+  presidedBy: '',
+  openingPrayer: '',
+  discussedMatters: '',
+  actionItems: [],
   closingPrayer: '',
   status: 'draft',
 };

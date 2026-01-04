@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { BaptismalErrorModal } from '@/components/BaptismalErrorModal';
-import { OrdinancesSection } from '@/components/OrdinancesSection';
 import { BaptismalRecord, OrdinanceItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -406,11 +405,103 @@ export default function BaptismalHome() {
 
           {/* Ordenanças - Confirmação de Batismo */}
           <div className="bg-white p-6 rounded-xl border-l-4 border-[#16a085] shadow-md">
-            <OrdinancesSection
-              items={record.ordinances}
-              onItemsChange={handleOrdinancesChange}
-              errors={errors}
-            />
+            <h3 className="text-xl font-bold text-[#1e8b9f] mb-4 font-playfair">
+              Confirmação de Batismo
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Registre as confirmações realizadas após o batismo
+            </p>
+
+            <div className="space-y-4 mb-6">
+              {record.ordinances.map((ordinance) => (
+                <div
+                  key={ordinance.id}
+                  className="p-4 bg-gradient-to-br from-cyan-50 to-teal-50 rounded-lg border-2 border-[#16a085]/30"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-[#16a085] text-white text-xs font-semibold rounded-full">
+                        Confirmação de Batismo
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const updatedOrdinances = record.ordinances.filter((o) => o.id !== ordinance.id);
+                        handleOrdinancesChange(updatedOrdinances);
+                      }}
+                      className="p-2 h-auto bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
+                      title="Remover confirmação"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <InputField
+                      label="Nome do Confirmado"
+                      value={ordinance.fullName}
+                      onChange={(e) => {
+                        const updatedOrdinances = record.ordinances.map((o) =>
+                          o.id === ordinance.id ? { ...o, fullName: e.target.value } : o
+                        );
+                        handleOrdinancesChange(updatedOrdinances);
+                      }}
+                      placeholder="Nome completo"
+                      error={errors?.[`ordinance-${ordinance.id}-fullName`]}
+                    />
+                    
+                    <InputField
+                      label="Quem Realizou a Confirmação"
+                      value={ordinance.performedBy || ''}
+                      onChange={(e) => {
+                        const updatedOrdinances = record.ordinances.map((o) =>
+                          o.id === ordinance.id ? { ...o, performedBy: e.target.value } : o
+                        );
+                        handleOrdinancesChange(updatedOrdinances);
+                      }}
+                      placeholder="Nome de quem realizou a confirmação"
+                    />
+
+                    <InputField
+                      label="Observações (opcional)"
+                      value={ordinance.notes || ''}
+                      onChange={(e) => {
+                        const updatedOrdinances = record.ordinances.map((o) =>
+                          o.id === ordinance.id ? { ...o, notes: e.target.value } : o
+                        );
+                        handleOrdinancesChange(updatedOrdinances);
+                      }}
+                      placeholder="Informações adicionais"
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {record.ordinances.length === 0 && (
+                <div className="text-center py-6 text-gray-500 text-sm">
+                  Nenhuma confirmação registrada neste serviço
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => {
+                const newOrdinance: OrdinanceItem = {
+                  id: Date.now().toString(),
+                  type: 'confirmation',
+                  fullName: '',
+                  performedBy: '',
+                  notes: '',
+                };
+                handleOrdinancesChange([...record.ordinances, newOrdinance]);
+              }}
+              className="w-full bg-white border-2 border-[#1e8b9f] text-[#1e8b9f] hover:bg-[#1e8b9f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+            >
+              <Plus size={18} />
+              Adicionar Confirmação
+            </Button>
           </div>
 
           {/* Encerramento */}
