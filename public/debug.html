@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug - Ata Batismal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #1e3a5f;
+      font-size: 24px;
+    }
+    h2 {
+      color: #24466e;
+      font-size: 18px;
+      margin-top: 0;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .locked {
+      background: #fee;
+      color: #c00;
+    }
+    .ok {
+      background: #efe;
+      color: #0a0;
+    }
+    button {
+      background: #1e3a5f;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #24466e;
+    }
+    button.danger {
+      background: #dc3545;
+    }
+    button.danger:hover {
+      background: #c82333;
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔧 Debug - Ata Batismal</h1>
+  
+  <div class="card">
+    <h2>Status do Lockout</h2>
+    <div id="lockoutStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Tentativas de Login</h2>
+    <div id="attemptsStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Sessão</h2>
+    <div id="sessionStatus"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Ações</h2>
+    <button onclick="clearLockout()">🔓 Desbloquear (Limpar Lockout)</button>
+    <button onclick="clearSession()">🚪 Limpar Sessão</button>
+    <button onclick="clearAll()" class="danger">🗑️ Limpar Tudo</button>
+    <button onclick="location.reload()">🔄 Atualizar</button>
+  </div>
+  
+  <div class="card">
+    <h2>Dados Armazenados</h2>
+    <pre id="storageData"></pre>
+  </div>
+
+  <script>
+    const AUTH_CONFIG = {
+      LOCKOUT_KEY: 'auth_lockout',
+      ATTEMPTS_KEY: 'auth_attempts',
+      BAPTISMAL_SESSION_KEY: 'baptismal_auth',
+      BAPTISMAL_TIMESTAMP_KEY: 'baptismal_auth_time',
+      SACRAMENTAL_SESSION_KEY: 'sacramental_auth',
+      SACRAMENTAL_TIMESTAMP_KEY: 'sacramental_auth_time',
+    };
+
+    function checkLockout() {
+      const lockoutEnd = localStorage.getItem(AUTH_CONFIG.LOCKOUT_KEY);
+      const lockoutDiv = document.getElementById('lockoutStatus');
+      
+      if (!lockoutEnd) {
+        lockoutDiv.innerHTML = '<div class="status ok">✅ Não bloqueado</div>';
+        return;
+      }
+      
+      const lockoutTime = parseInt(lockoutEnd, 10);
+      const now = Date.now();
+      
+      if (now < lockoutTime) {
+        const remainingMs = lockoutTime - now;
+        const remainingMin = Math.ceil(remainingMs / 1000 / 60);
+        lockoutDiv.innerHTML = `
+          <div class="status locked">
+            ❌ BLOQUEADO - Aguarde ${remainingMin} minuto(s)
+            <br><small>Expira em: ${new Date(lockoutTime).toLocaleString()}</small>
+          </div>
+        `;
+      } else {
+        lockoutDiv.innerHTML = '<div class="status ok">✅ Lockout expirado (pode limpar)</div>';
+      }
+    }
+
+    function checkAttempts() {
+      const attemptsData = localStorage.getItem(AUTH_CONFIG.ATTEMPTS_KEY);
+      const attemptsDiv = document.getElementById('attemptsStatus');
+      
+      if (!attemptsData) {
+        attemptsDiv.innerHTML = '<div class="status ok">✅ Nenhuma tentativa registrada</div>';
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(attemptsData);
+        const remaining = Math.max(0, 5 - data.attempts);
+        attemptsDiv.innerHTML = `
+          <div class="status ${data.attempts >= 5 ? 'locked' : 'ok'}">
+            Tentativas falhadas: ${data.attempts}/5
+            <br>Tentativas restantes: ${remaining}
+            <br><small>Primeira tentativa: ${new Date(data.firstAttempt).toLocaleString()}</small>
+          </div>
+        `;
+      } catch (e) {
+        attemptsDiv.innerHTML = '<div class="status locked">⚠️ Dados corrompidos</div>';
+      }
+    }
+
+    function checkSession() {
+      const sessionDiv = document.getElementById('sessionStatus');
+      const baptismalAuth = sessionStorage.getItem(AUTH_CONFIG.BAPTISMAL_SESSION_KEY);
+      const baptismalTime = sessionStorage.getItem(AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY);
+      const sacramentalAuth = sessionStorage.getItem(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY);
+      const sacramentalTime = sessionStorage.getItem(AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
+      
+      let html = '<div>';
+      
+      if (baptismalAuth === 'true') {
+        const timestamp = baptismalTime ? new Date(parseInt(baptismalTime)).toLocaleString() : 'N/A';
+        html += `<div class="status ok">✅ Batismal autenticado (${timestamp})</div>`;
+      } else {
+        html += '<div class="status">❌ Batismal não autenticado</div>';
+      }
+      
+      if (sacramentalAuth === 'true') {
+        const timestamp = sacramentalTime ? new Date(parseInt(sacramentalTime)).toLocaleString() : 'N/A';
+        html += `<div class="status ok">✅ Sacramental autenticado (${timestamp})</div>`;
+      } else {
+        html += '<div class="status">❌ Sacramental não autenticado</div>';
+      }
+      
+      html += '</div>';
+      sessionDiv.innerHTML = html;
+    }
+
+    function showStorageData() {
+      const data = {
+        localStorage: {},
+        sessionStorage: {}
+      };
+      
+      // LocalStorage
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        data.localStorage[key] = localStorage.getItem(key);
+      }
+      
+      // SessionStorage
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        data.sessionStorage[key] = sessionStorage.getItem(key);
+      }
+      
+      document.getElementById('storageData').textContent = JSON.stringify(data, null, 2);
+    }
+
+    function clearLockout() {
+      localStorage.removeItem(AUTH_CONFIG.LOCKOUT_KEY);
+      localStorage.removeItem(AUTH_CONFIG.ATTEMPTS_KEY);
+      alert('✅ Lockout limpo! Você pode tentar fazer login novamente.');
+      location.reload();
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem(AUTH_CONFIG.BAPTISMAL_SESSION_KEY);
+      sessionStorage.removeItem(AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY);
+      sessionStorage.removeItem(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY);
+      sessionStorage.removeItem(AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
+      alert('✅ Sessão limpa!');
+      location.reload();
+    }
+
+    function clearAll() {
+      if (confirm('Tem certeza que deseja limpar TODOS os dados?')) {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('✅ Todos os dados foram limpos!');
+        location.reload();
+      }
+    }
+
+    // Atualizar status ao carregar
+    checkLockout();
+    checkAttempts();
+    checkSession();
+    showStorageData();
+    
+    // Atualizar a cada 5 segundos
+    setInterval(() => {
+      checkLockout();
+      checkAttempts();
+      checkSession();
+    }, 5000);
+  </script>
+</body>
+</html>
