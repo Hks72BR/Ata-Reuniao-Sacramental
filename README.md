@@ -115,66 +115,6 @@
 
 ---
 
-## 💼 Planos e Investimento
-
-### 📦 Pacote Básico - Unidade Local
-**Ideal para uma ala ou ramo**
-
-✅ Sistema completo com 3 módulos  
-✅ Até 3 usuários simultâneos  
-✅ Armazenamento local ilimitado  
-✅ Suporte técnico via email  
-✅ Atualizações de segurança  
-
-**Investimento único**: Consultar
-
-### 🏢 Pacote Estaca
-**Para uso em múltiplas unidades**
-
-✅ Tudo do Pacote Básico  
-✅ Até 20 usuários simultâneos  
-✅ Sincronização em nuvem entre unidades  
-✅ Backup automático diário  
-✅ Suporte prioritário  
-✅ Dashboard consolidado da estaca  
-✅ Treinamento online para líderes  
-
-**Investimento único + manutenção anual**: Consultar
-
-### 🌎 Pacote Institucional
-**Para coordenadorias e múltiplas estacas**
-
-✅ Tudo do Pacote Estaca  
-✅ Usuários ilimitados  
-✅ Personalização de marca  
-✅ Integração com sistemas existentes  
-✅ Servidor dedicado  
-✅ Suporte 24/7  
-✅ Consultoria para implantação  
-✅ Treinamento presencial  
-
-**Valor customizado**: Consultar
-
-> 💡 **Garantia de 30 dias**: Se não atender suas expectativas, devolvemos 100% do investimento.
-
----
-
-## 🎓 Suporte e Treinamento
-
-### Documentação Completa
-- 📖 Manual do usuário em português
-- 🎥 Vídeo-tutoriais passo a passo
-- 💡 FAQ com dúvidas frequentes
-- 📞 Suporte técnico especializado
-
-### Treinamento Incluído
-- 🎓 Capacitação inicial para secretários
-- 👥 Workshop para líderes
-- 📧 Suporte contínuo via email/WhatsApp
-- 🔄 Atualizações e melhorias constantes
-
----
-
 ## 🔧 Requisitos Técnicos
 
 ### Mínimos
@@ -205,11 +145,9 @@
 ### Exportação PDF
 ![Documentos profissionais](#)
 
-> 📧 **Solicite uma demonstração gratuita**: Entre em contato para agendar uma apresentação online personalizada para sua unidade.
-
 ---
 
-## 🌟 Depoimentos
+## 🌟 Depoimentos (Estaca Parelheiros)
 
 > *"Reduziu meu tempo de elaboração de atas de 40 minutos para apenas 10 minutos. Excelente ferramenta!"*  
 > — **Secretário da Ala**, Estaca São Paulo
@@ -223,27 +161,14 @@
 ---
 
 ## 📞 Entre em Contato
-
-### Solicite uma Demonstração Gratuita
-
-📧 **Email**: contato@atasacramental.com  
-📱 **WhatsApp**: +55 (XX) XXXXX-XXXX  
-🌐 **Site**: www.atasacramental.com  
-
-### Horário de Atendimento
-- Segunda a Sexta: 9h às 18h
-- Sábado: 9h às 13h
-- Domingo: Fechado (respeito ao dia do Senhor)
+📧 **Email**: higor-nds@hotmail.com
+📱 **WhatsApp**: +55 (11) 944885779 
 
 ---
 
 ## 📋 Próximos Passos
+ **📞 Entre em contato**  
 
-1. **📞 Entre em contato** para agendar uma demonstração
-2. **🎯 Escolha o plano** ideal para sua unidade
-3. **🚀 Implantação** rápida em até 24 horas
-4. **🎓 Treinamento** da equipe
-5. **✅ Comece a usar** e experimente a diferença
 
 ---
 
@@ -271,20 +196,6 @@ Software proprietário desenvolvido exclusivamente para unidades da Igreja de Je
 
 Auxiliar os líderes e secretários da Igreja a focarem no que realmente importa: ministrar e servir aos membros, enquanto cuidamos da parte administrativa com excelência e tecnologia.
 
----
-
-<div align="center">
-
-### 🎁 Oferta Especial de Lançamento
-
-**Primeiras 10 unidades recebem 30% de desconto**  
-**+ 6 meses de suporte premium gratuito**
-
-[**📞 AGENDE SUA DEMONSTRAÇÃO AGORA**](#)
-
-</div>
-
----
 
 ## 📚 Documentação Técnica
 
@@ -501,7 +412,7 @@ VITE_FIREBASE_APP_ID=seu_app_id
 #### 📅 Futuras Melhorias (v2.0)
 - [ ] Notificações push
 - [ ] Backup automático para email
-- [ ] Assinatura digital de atas
+- [x] Assinatura digital de atas
 - [ ] Modo multi-idioma (EN/ES/PT)
 - [ ] App mobile nativo (React Native)
 - [ ] Integração com calendário
@@ -530,51 +441,6 @@ npm run test:e2e
 npm run test:coverage
 ```
 
-### Deploy
-
-**Opções de hospedagem suportadas:**
-
-1. **Vercel** (Recomendado) ⭐
-   - Deploy automático via GitHub
-   - HTTPS gratuito
-   - CDN global
-   - Rollback instantâneo
-
-2. **Netlify**
-   - Configuração simples
-   - CI/CD integrado
-
-3. **Servidor Próprio**
-   - Controle total
-   - Maior privacidade
-
-📖 **Guia de hospedagem**: [HOSPEDAGEM.md](Ata-Reuniao-Sacramental/HOSPEDAGEM.md)
-
-</details>
-
----
-
-## 🤝 Suporte Corporativo
-
-### SLA (Service Level Agreement)
-
-**Pacote Básico:**
-- Resposta em até 48h úteis
-- Correção de bugs críticos em até 7 dias
-
-**Pacote Estaca:**
-- Resposta em até 24h úteis  
-- Correção de bugs críticos em até 3 dias
-- Suporte via WhatsApp
-
-**Pacote Institucional:**
-- Resposta em até 4h úteis
-- Correção de bugs críticos em até 24h
-- Suporte 24/7 via telefone/WhatsApp
-- Gerente de conta dedicado
-
----
-
 ## ⚖️ Termos de Uso
 
 Este sistema é fornecido exclusivamente para uso religioso e administrativo de unidades da Igreja de Jesus Cristo dos Santos dos Últimos Dias. 
@@ -594,13 +460,6 @@ Este sistema é fornecido exclusivamente para uso religioso e administrativo de 
 
 <div align="center">
 
-## 🌟 Transforme a Administração da Sua Unidade
-
-### Experimente gratuitamente por 30 dias
-
-**Sem compromisso • Sem cartão de crédito • Suporte incluído**
-
-[**🚀 INICIAR TESTE GRATUITO**](#) &nbsp;&nbsp;|&nbsp;&nbsp; [**📞 FALAR COM CONSULTOR**](#) &nbsp;&nbsp;|&nbsp;&nbsp; [**🎥 VER DEMONSTRAÇÃO**](#)
 
 ---
 
@@ -614,11 +473,6 @@ Este sistema é fornecido exclusivamente para uso religioso e administrativo de 
 - [x] Autenticação
 - [x] Compartilhamento de atas
 
-## 📄 Licença
-
-Este projeto é de código aberto e está disponível para uso pela comunidade SUD.
-
-## 👨‍💻 Desenvolvimento
 
 Desenvolvido com reverência e dedicação para servir à comunidade da Igreja de Jesus Cristo dos Santos dos Últimos Dias.
 
