@@ -468,29 +468,44 @@ VITE_FIREBASE_APP_ID=seu_app_id
 
 ### Roadmap de Desenvolvimento
 
-#### ✅ Concluído (v1.0)
+#### ✅ Fase 1 - Fundação (Concluído)
+- [x] Estrutura de pastas organizada
+- [x] Validação completa de formulário
+- [x] Funções utilitárias centralizadas
+- [x] TypeScript strict mode
+- [x] Imports corrigidos
+
+#### ✅ Fase 2 - Recursos Principais (Concluído)
+- [x] Geração de PDF profissional
+- [x] Busca avançada (implementado busca por datas)
+- [x] Tema escuro completo otimizado
+
+#### ✅ Fase 3 - Deploy e Qualidade (Concluído)
+- [x] Testes automatizados (Vitest)
+- [x] Deploy direto no Vercel sincronizado com GitHub (sem CI/CD)
+
+#### ✅ Fase 4 - Backend e Sincronização (Concluído)
+- [x] Backend/Firebase
+- [x] Sincronização na nuvem
+- [x] Autenticação
+- [x] Compartilhamento de atas
+
+#### ✅ Sistema Completo - v1.0
 - [x] Sistema completo de atas sacramentais
 - [x] Módulo batismal
-- [x] Módulo do bispado  
+- [x] Módulo do bispado
 - [x] Autenticação por PIN
-- [x] Exportação em PDF
 - [x] PWA com funcionamento offline
-- [x] Tema claro e escuro
 - [x] Dashboard com estatísticas
-- [x] Busca e filtros avançados
-- [x] Sincronização Firebase
-- [x] Deploy automatizado (Vercel)
 
-#### 🚧 Em Desenvolvimento (v1.1)
+#### 📅 Futuras Melhorias (v2.0)
 - [ ] Notificações push
 - [ ] Backup automático para email
 - [ ] Assinatura digital de atas
 - [ ] Modo multi-idioma (EN/ES/PT)
-
-#### 📅 Planejado (v2.0)
 - [ ] App mobile nativo (React Native)
 - [ ] Integração com calendário
-- [ ] Geração de relatórios analíticos
+- [ ] Geração de relatórios analíticos avançados
 - [ ] API pública para integrações
 - [ ] Sistema de templates personalizáveis
 
