@@ -23,8 +23,8 @@
 ### Para a Organização
 ✅ **Sustentabilidade** - reduz uso de papel  
 ✅ **Preservação digital** - nunca perca registros importantes  
-✅ **Estatísticas** - acompanhe dados de participação e palestrantes  
-✅ **Conformidade** - atende aos requisitos de documentação da Igreja  
+✅ **Estatísticas** - acompanhe dados de oradores da sacramental evitando repitição dando oportunidade para todos os membros aptos a discursar.
+✅ **Conformidade** - atende aos requisitos de documentação da Igreja (conforme manual Geral) 
 
 ---
 
@@ -150,13 +150,13 @@
 ## 🌟 Depoimentos (Estaca Parelheiros)
 
 > *"Reduziu meu tempo de elaboração de atas de 40 minutos para apenas 10 minutos. Excelente ferramenta!"*  
-> — **Secretário da Ala**, Estaca São Paulo
+> — **Secretário da Ala**
 
 > *"A organização e facilidade de busca no histórico são impressionantes. Encontro qualquer registro em segundos."*  
-> — **Secretário Executivo**, Estaca Rio de Janeiro
+> — **Secretário Executivo**
 
 > *"Finalmente uma solução digital que respeita os padrões e a reverência da Igreja. Recomendo!"*  
-> — **Bispo**, Ala Brasília
+> — **Bispo**
 
 ---
 
@@ -164,22 +164,13 @@
 📧 **Email**: higor-nds@hotmail.com
 📱 **WhatsApp**: +55 (11) 944885779 
 
----
-
-## 📋 Próximos Passos
- **📞 Entre em contato**  
-
-
----
-
 ## 🔒 Compromisso com Privacidade
 
 Desenvolvido com total respeito aos princípios da Igreja e às normas de proteção de dados:
 
 ✅ Dados criptografados  
 ✅ Conformidade com LGPD  
-✅ Sem compartilhamento com terceiros  
-✅ Controle total da sua unidade sobre os dados  
+✅ Sem compartilhamento com terceiros   
 ✅ Backup seguro e recuperação de desastres  
 
 ---
@@ -479,4 +470,4 @@ Desenvolvido com reverência e dedicação para servir à comunidade da Igreja d
 ---
 
 **Versão:** 1.0.0  
-**Data:** Dezembro 2025
+**Data:** janeiro 2026
