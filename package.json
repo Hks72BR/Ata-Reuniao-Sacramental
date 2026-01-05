@@ -1,7 +1,10 @@
 {
-  "name": "ata-sacramental-app",
+  "name": "sistema-atas-sacramentais",
   "version": "1.0.0",
-  "description": "Aplicativo PWA para registro de atas sacramentais da Igreja SUD",
+  "description": "Sistema Digital Profissional para Gestão de Atas Eclesiásticas - Igreja de Jesus Cristo dos Santos dos Últimos Dias",
+  "author": "Sistema de Atas Sacramentais",
+  "license": "PROPRIETARY",
+  "keywords": ["ata-sacramental", "igreja-sud", "pwa", "gestão-eclesiastica", "registro-religioso"],
   "type": "module",
   "scripts": {
     "dev": "vite",
