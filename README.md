@@ -23,7 +23,7 @@
 ### Para a Organização
 ✅ **Sustentabilidade** - reduz uso de papel  
 ✅ **Preservação digital** - nunca perca registros importantes  
-✅ **Estatísticas** - acompanhe dados de oradores da sacramental evitando repitição dando oportunidade para todos os membros aptos a discursar.
+✅ **Estatísticas** - acompanhe dados de oradores da sacramental evitando repetição.
 ✅ **Conformidade** - atende aos requisitos de documentação da Igreja (conforme manual Geral) 
 
 
