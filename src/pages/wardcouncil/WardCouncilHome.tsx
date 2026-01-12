@@ -24,10 +24,18 @@ export default function WardCouncilHome() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY)) {
+    console.log('[WardCouncil] Verificando autenticação...');
+    console.log('[WardCouncil] Session key:', AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY);
+    const isAuth = isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY);
+    console.log('[WardCouncil] Autenticado?', isAuth);
+    
+    if (!isAuth) {
+      console.log('[WardCouncil] Não autenticado, redirecionando para /');
       setLocation('/');
       return;
     }
+    
+    console.log('[WardCouncil] Autenticado! Carregando página...');
 
     const savedRecord = localStorage.getItem('wardCouncilRecord');
     if (savedRecord) {

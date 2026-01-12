@@ -260,9 +260,13 @@ function updateSessionTimestamp(timestampKey: string): void {
  * Verifica se está autenticado e se a sessão não expirou
  */
 export function isAuthenticated(sessionKey: string): boolean {
+  console.log('[Auth] Verificando autenticação para:', sessionKey);
   const isAuth = sessionStorage.getItem(sessionKey) === 'true';
+  console.log('[Auth] Valor no sessionStorage:', sessionStorage.getItem(sessionKey));
+  console.log('[Auth] isAuth:', isAuth);
   
   if (!isAuth) {
+    console.log('[Auth] Não autenticado (sessionStorage vazio ou diferente de "true")');
     return false;
   }
   
@@ -279,11 +283,16 @@ export function isAuthenticated(sessionKey: string): boolean {
     timestampKey = AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY;
   }
   
+  console.log('[Auth] Timestamp key:', timestampKey);
+  
   // Verificar se sessão expirou
   if (isSessionExpired(timestampKey)) {
+    console.log('[Auth] Sessão expirou, fazendo logout');
     logout(sessionKey);
     return false;
   }
+  
+  console.log('[Auth] Sessão válida!');
   
   // Atualizar timestamp (renovar sessão)
   updateSessionTimestamp(timestampKey);
