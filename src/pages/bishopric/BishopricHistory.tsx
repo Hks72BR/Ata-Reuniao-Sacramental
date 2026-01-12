@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
+import { DeletePinModal } from '@/components/DeletePinModal';
 import { BishopricRecord } from '@/types';
 import { Eye, Trash2, Search, FileText, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -21,6 +22,9 @@ export default function BishopricHistory() {
   const [filteredRecords, setFilteredRecords] = useState<BishopricRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showDeletePinModal, setShowDeletePinModal] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
+  const [recordToDeleteDate, setRecordToDeleteDate] = useState<string>('');
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -78,16 +82,24 @@ export default function BishopricHistory() {
     setLocation(`/bishopric/view/${record.id}`);
   };
 
-  const handleDeleteRecord = async (id: string) => {
-    if (!confirm('Tem certeza que deseja deletar esta ata de bispado? Esta ação não pode ser desfeita.')) {
-      return;
-    }
+  const handleDeleteRecord = (record: BishopricRecord) => {
+    setRecordToDelete(record.id!);
+    setRecordToDeleteDate(formatDate(record.date));
+    setShowDeletePinModal(true);
+  };
+
+  const handleDeletePinSuccess = async () => {
+    setShowDeletePinModal(false);
+    
+    if (!recordToDelete) return;
 
     try {
-      await deleteBishopricRecordFromCloud(id);
+      await deleteBishopricRecordFromCloud(recordToDelete);
       toast.success('✅ Ata de bispado deletada com sucesso', {
         duration: 2000,
       });
+      setRecordToDelete(null);
+      setRecordToDeleteDate('');
       await loadRecords();
     } catch (error) {
       toast.error('❌ Erro ao deletar ata de bispado');
@@ -212,7 +224,7 @@ export default function BishopricHistory() {
                       Ver
                     </Button>
                     <Button
-                      onClick={() => handleDeleteRecord(record.id!)}
+                      onClick={() => handleDeleteRecord(record)}
                       className="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 px-4 py-2"
                       title="Deletar ata"
                     >
@@ -246,6 +258,18 @@ export default function BishopricHistory() {
           </div>
         )}
       </div>
+
+      {/* Delete PIN Modal */}
+      <DeletePinModal
+        isOpen={showDeletePinModal}
+        onClose={() => {
+          setShowDeletePinModal(false);
+          setRecordToDelete(null);
+          setRecordToDeleteDate('');
+        }}
+        onSuccess={handleDeletePinSuccess}
+        recordDate={recordToDeleteDate}
+      />
     </div>
   );
 }

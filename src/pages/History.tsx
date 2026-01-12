@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
 import { UserIdentificationModal } from '@/components/UserIdentificationModal';
+import { DeletePinModal } from '@/components/DeletePinModal';
 import { getAllRecords, searchRecordsByDate, deleteRecord } from '@/lib/db';
 import { SacramentalRecord } from '@/types';
 import { Eye, Trash2, Search, Calendar, ArrowLeft } from 'lucide-react';
@@ -20,7 +21,9 @@ export default function History() {
   const [searchDate, setSearchDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [showDeletePinModal, setShowDeletePinModal] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
+  const [recordToDeleteDate, setRecordToDeleteDate] = useState<string>('');
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -76,24 +79,34 @@ export default function History() {
     setLocation(`/sacramental/view/${record.id}`);
   };
 
-  const handleDeleteRecord = async (id: string) => {
+  const handleDeleteRecord = (record: SacramentalRecord) => {
+    // Primeira barreira: confirmação nativa
     if (!confirm('Tem certeza que deseja deletar esta ata? Esta ação não pode ser desfeita.')) {
       return;
     }
 
-    // Pedir identificação antes de excluir
-    setRecordToDelete(id);
+    // Segunda barreira: PIN de exclusão
+    setRecordToDelete(record.id || null);
+    setRecordToDeleteDate(record.date);
+    setShowDeletePinModal(true);
+  };
+
+  const handleDeletePinSuccess = () => {
+    // PIN correto, agora pedir identificação
+    console.log('[History] PIN correto! Abrindo modal de identificação...');
+    console.log('[History] recordToDelete:', recordToDelete);
+    setShowDeletePinModal(false);
     setShowUserModal(true);
   };
 
   const handleUserConfirmDelete = async (userName: string) => {
+    console.log('[History] Deletando ata com usuário:', userName);
+    console.log('[History] ID da ata:', recordToDelete);
     setShowUserModal(false);
     
     if (!recordToDelete) return;
 
     try {
-      // TODO: Salvar informação de quem excluiu antes de deletar
-      // Poderia implementar soft delete aqui salvando deletedBy
       await deleteRecord(recordToDelete);
       toast.success(`✅ Ata deletada por ${userName.toUpperCase()}`, {
         duration: 2000,
@@ -104,6 +117,7 @@ export default function History() {
       console.error(error);
     } finally {
       setRecordToDelete(null);
+      setRecordToDeleteDate('');
     }
   };
 
@@ -246,7 +260,7 @@ export default function History() {
                       Ver
                     </Button>
                     <Button
-                      onClick={() => handleDeleteRecord(record.id!)}
+                      onClick={() => handleDeleteRecord(record)}
                       className="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
                     >
                       <Trash2 size={16} />
@@ -285,6 +299,18 @@ export default function History() {
         )}
       </div>
 
+      {/* Modal de PIN de Exclusão */}
+      <DeletePinModal
+        isOpen={showDeletePinModal}
+        onClose={() => {
+          setShowDeletePinModal(false);
+          setRecordToDelete(null);
+          setRecordToDeleteDate('');
+        }}
+        onSuccess={handleDeletePinSuccess}
+        recordDate={recordToDeleteDate}
+      />
+
       {/* Modal de Identificação */}
       <UserIdentificationModal
         isOpen={showUserModal}
@@ -292,6 +318,7 @@ export default function History() {
         onCancel={() => {
           setShowUserModal(false);
           setRecordToDelete(null);
+          setRecordToDeleteDate('');
         }}
         action="excluir"
       />

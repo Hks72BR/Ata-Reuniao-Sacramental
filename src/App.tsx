@@ -20,6 +20,9 @@ import BaptismalView from "./pages/baptismal/BaptismalView";
 import BishopricHome from "./pages/bishopric/BishopricHome";
 import BishopricHistory from "./pages/bishopric/BishopricHistory";
 import BishopricView from "./pages/bishopric/BishopricView";
+import WardCouncilHome from "./pages/wardcouncil/WardCouncilHome";
+import WardCouncilHistory from "./pages/wardcouncil/WardCouncilHistory";
+import WardCouncilView from "./pages/wardcouncil/WardCouncilView";
 
 function Router() {
   return (
@@ -35,6 +38,9 @@ function Router() {
       <Route path={"/bishopric"} component={BishopricHome} />
       <Route path={"/bishopric/history"} component={BishopricHistory} />
       <Route path={"/bishopric/view/:id"} component={BishopricView} />
+      <Route path={"/wardcouncil"} component={WardCouncilHome} />
+      <Route path={"/wardcouncil/history"} component={WardCouncilHistory} />
+      <Route path={"/wardcouncil/view/:id"} component={WardCouncilView} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

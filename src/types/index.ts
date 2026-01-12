@@ -239,6 +239,64 @@ export const BISHOPRIC_RECORD_INITIAL: Partial<BishopricRecord> = {
   status: 'draft',
 };
 
+// ============================================
+// TIPOS PARA ATA DE CONSELHO DE ALA
+// ============================================
+
+export interface WardCouncilRecord {
+  id?: string;
+  date: string; // ISO date format
+  
+  // Dados básicos
+  presidedBy: string;
+  directedBy: string;
+  openingPrayer: string;
+  
+  // Assuntos tratados por organização
+  organizationMatters: OrganizationMatters;
+  
+  // Itens de ação (checklist)
+  actionItems: ActionItem[];
+  
+  // Encerramento
+  closingPrayer: string;
+  
+  // Metadados
+  createdAt: string;
+  updatedAt: string;
+  status: 'draft' | 'completed' | 'archived';
+  createdBy?: string;
+  lastEditedBy?: string;
+  lastEditedAt?: string;
+}
+
+export interface OrganizationMatters {
+  rapazes: string; // Assuntos dos Rapazes
+  mocas: string; // Assuntos das Moças
+  socorro: string; // Sociedade de Socorro
+  elderes: string; // Quórum de Elderes
+  missionaria: string; // Obra Missionária
+  primaria: string; // Primária
+}
+
+export const WARD_COUNCIL_RECORD_INITIAL: Partial<WardCouncilRecord> = {
+  date: new Date().toISOString().split('T')[0],
+  presidedBy: '',
+  directedBy: '',
+  openingPrayer: '',
+  organizationMatters: {
+    rapazes: '',
+    mocas: '',
+    socorro: '',
+    elderes: '',
+    missionaria: '',
+    primaria: '',
+  },
+  actionItems: [],
+  closingPrayer: '',
+  status: 'draft',
+};
+
 export const VALIDATION_RULES = {
   presidedBy: {
     required: true,

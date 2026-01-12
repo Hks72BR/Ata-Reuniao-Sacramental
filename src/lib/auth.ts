@@ -21,7 +21,11 @@ const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos de bloqueio
 // Configuração de PINs
 // SACRAMENTAL: pega do Vercel (variável de ambiente)
 // BAPTISMAL: hardcoded no código
+// WARD_COUNCIL: pega do Vercel (variável de ambiente)
+// DELETE: PIN especial para exclusão de atas (variável de ambiente)
 const SACRAMENTAL_PIN_FROM_ENV = import.meta.env.VITE_SACRAMENTAL_PIN;
+const WARD_COUNCIL_PIN_FROM_ENV = import.meta.env.VITE_WARD_COUNCIL_PIN;
+const DELETE_PIN_FROM_ENV = import.meta.env.VITE_DELETE_PIN;
 
 // Validar PIN do Sacramental
 function validateSacramentalPin(pin: string | undefined): string {
@@ -47,8 +51,56 @@ function validateSacramentalPin(pin: string | undefined): string {
   return pin;
 }
 
+// Validar PIN do Conselho da Ala
+function validateWardCouncilPin(pin: string | undefined): string {
+  const fallback = '2027';
+  
+  if (!pin) {
+    if (import.meta.env.DEV) {
+      console.warn(`⚠️ WARD_COUNCIL_PIN não configurado, usando fallback: ${fallback}`);
+    }
+    return fallback;
+  }
+  
+  if (!/^\d{4}$/.test(pin)) {
+    console.error(`❌ WARD_COUNCIL_PIN inválido: "${pin}" (deve ter exatamente 4 dígitos)`);
+    console.warn(`⚠️ Usando fallback: ${fallback}`);
+    return fallback;
+  }
+  
+  if (import.meta.env.DEV) {
+    console.log(`✅ WARD_COUNCIL_PIN configurado corretamente`);
+  }
+  
+  return pin;
+}
+
+// Validar PIN de Exclusão (configuração)
+function getDeletePinFromEnv(pin: string | undefined): string {
+  const fallback = '9999';
+  
+  if (!pin) {
+    if (import.meta.env.DEV) {
+      console.warn(`⚠️ DELETE_PIN não configurado, usando fallback: ${fallback}`);
+    }
+    return fallback;
+  }
+  
+  if (!/^\d{4}$/.test(pin)) {
+    console.error(`❌ DELETE_PIN inválido: "${pin}" (deve ter exatamente 4 dígitos)`);
+    console.warn(`⚠️ Usando fallback: ${fallback}`);
+    return fallback;
+  }
+  
+  if (import.meta.env.DEV) {
+    console.log(`✅ DELETE_PIN configurado corretamente`);
+  }
+  
+  return pin;
+}
+
 if (import.meta.env.DEV) {
-  console.log('🔐 Auth Config - Sacramental: variável ambiente | Batismal: hardcoded');
+  console.log('🔐 Auth Config - Sacramental: variável ambiente | Batismal: hardcoded | Conselho Ala: variável ambiente | Delete: variável ambiente');
 }
 
 export const AUTH_CONFIG = {
@@ -56,14 +108,20 @@ export const AUTH_CONFIG = {
   SACRAMENTAL_PIN: validateSacramentalPin(SACRAMENTAL_PIN_FROM_ENV),
   // Batismal: hardcoded
   BAPTISMAL_PIN: '2015',
+  // Conselho da Ala: pega do Vercel
+  WARD_COUNCIL_PIN: validateWardCouncilPin(WARD_COUNCIL_PIN_FROM_ENV),
+  // Delete: PIN especial para exclusão (variável de ambiente)
+  DELETE_PIN: getDeletePinFromEnv(DELETE_PIN_FROM_ENV),
   
   // Chaves de sessão (não alterar)
   SACRAMENTAL_SESSION_KEY: 'sacramental_auth',
   BAPTISMAL_SESSION_KEY: 'baptismal_auth',
+  WARD_COUNCIL_SESSION_KEY: 'wardcouncil_auth',
   
   // Chaves de timestamp
   SACRAMENTAL_TIMESTAMP_KEY: 'sacramental_auth_time',
   BAPTISMAL_TIMESTAMP_KEY: 'baptismal_auth_time',
+  WARD_COUNCIL_TIMESTAMP_KEY: 'wardcouncil_auth_time',
   
   // Chaves de rate limiting
   ATTEMPTS_KEY: 'auth_attempts',
@@ -75,6 +133,9 @@ export const AUTH_CONFIG = {
   
   BAPTISMAL_TITLE: 'Acesso Restrito - Missionários',
   BAPTISMAL_DESCRIPTION: 'Digite o PIN de 4 dígitos fornecido aos Missionários',
+  
+  WARD_COUNCIL_TITLE: 'Acesso Restrito - Conselho da Ala',
+  WARD_COUNCIL_DESCRIPTION: 'Digite o PIN de 4 dígitos fornecido aos Líderes',
 };
 
 /**
@@ -228,6 +289,14 @@ export function isAuthenticated(sessionKey: string): boolean {
 export function login(sessionKey: string, timestampKey: string): void {
   sessionStorage.setItem(sessionKey, 'true');
   updateSessionTimestamp(timestampKey);
+}
+
+/**
+ * Validar PIN de Exclusão
+ * Retorna true se o PIN estiver correto
+ */
+export function validateDeletePin(enteredPin: string): boolean {
+  return enteredPin === AUTH_CONFIG.DELETE_PIN;
 }
 
 /**

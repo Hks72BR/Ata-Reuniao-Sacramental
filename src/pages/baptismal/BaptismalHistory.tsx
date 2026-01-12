@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
+import { DeletePinModal } from '@/components/DeletePinModal';
 import { BaptismalRecord } from '@/types';
 import { Eye, Trash2, Search, Droplets, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -22,6 +23,9 @@ export default function BaptismalHistory() {
   const [filteredRecords, setFilteredRecords] = useState<BaptismalRecord[]>([]);
   const [searchDate, setSearchDate] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showDeletePinModal, setShowDeletePinModal] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
+  const [recordToDeleteDate, setRecordToDeleteDate] = useState<string>('');
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -76,16 +80,24 @@ export default function BaptismalHistory() {
     setLocation(`/baptismal/view/${record.id}`);
   };
 
-  const handleDeleteRecord = async (id: string) => {
-    if (!confirm('Tem certeza que deseja deletar esta ata batismal? Esta ação não pode ser desfeita.')) {
-      return;
-    }
+  const handleDeleteRecord = (record: BaptismalRecord) => {
+    setRecordToDelete(record.id!);
+    setRecordToDeleteDate(formatDate(record.date));
+    setShowDeletePinModal(true);
+  };
+
+  const handleDeletePinSuccess = async () => {
+    setShowDeletePinModal(false);
+    
+    if (!recordToDelete) return;
 
     try {
-      await deleteBaptismalRecordFromCloud(id);
+      await deleteBaptismalRecordFromCloud(recordToDelete);
       toast.success('✅ Ata batismal deletada com sucesso', {
         duration: 2000,
       });
+      setRecordToDelete(null);
+      setRecordToDeleteDate('');
       await loadRecords();
     } catch (error) {
       toast.error('❌ Erro ao deletar ata batismal');
@@ -236,7 +248,7 @@ export default function BaptismalHistory() {
                       Ver
                     </Button>
                     <Button
-                      onClick={() => handleDeleteRecord(record.id!)}
+                      onClick={() => handleDeleteRecord(record)}
                       className="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
                     >
                       <Trash2 size={16} />
@@ -274,6 +286,18 @@ export default function BaptismalHistory() {
           </div>
         )}
       </div>
+
+      {/* Delete PIN Modal */}
+      <DeletePinModal
+        isOpen={showDeletePinModal}
+        onClose={() => {
+          setShowDeletePinModal(false);
+          setRecordToDelete(null);
+          setRecordToDeleteDate('');
+        }}
+        onSuccess={handleDeletePinSuccess}
+        recordDate={recordToDeleteDate}
+      />
     </div>
   );
 }
