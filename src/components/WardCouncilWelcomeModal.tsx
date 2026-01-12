@@ -3,7 +3,7 @@
  * Exibido na primeira vez que o usuário acessa
  */
 
-import { X, BookOpen, AlertCircle, Trash2, CheckSquare, Heart, Users, Shield } from 'lucide-react';
+import { BookOpen, AlertCircle, Trash2, CheckSquare, Heart, Users, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface WardCouncilWelcomeModalProps {
