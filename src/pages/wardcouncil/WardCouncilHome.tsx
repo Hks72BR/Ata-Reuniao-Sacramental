@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { ErrorModal } from '@/components/ErrorModal';
+import { WardCouncilWelcomeModal } from '@/components/WardCouncilWelcomeModal';
 import { WardCouncilRecord, ActionItem, WARD_COUNCIL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, X, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,6 +21,7 @@ export default function WardCouncilHome() {
   const [record, setRecord] = useState<WardCouncilRecord>(WARD_COUNCIL_RECORD_INITIAL as WardCouncilRecord);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
 
@@ -28,7 +30,13 @@ export default function WardCouncilHome() {
       setLocation('/');
       return;
     }
+// Verificar se é a primeira vez que o usuário acessa
+    const hasSeenWelcome = localStorage.getItem('wardcouncil_welcome_seen');
+    if (!hasSeenWelcome) {
+      setShowWelcomeModal(true);
+    }
 
+    
     const savedRecord = localStorage.getItem('wardCouncilRecord');
     if (savedRecord) {
       try {
@@ -480,6 +488,12 @@ export default function WardCouncilHome() {
           message="OS ERROS DEVEM SER CORRIGIDOS"
         />
       )}
+
+      {/* Welcome Modal */}
+      <WardCouncilWelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+      />
     </div>
   );
 }
