@@ -267,9 +267,17 @@ export function isAuthenticated(sessionKey: string): boolean {
   }
   
   // Determinar qual timestamp key usar
-  const timestampKey = sessionKey === AUTH_CONFIG.SACRAMENTAL_SESSION_KEY
-    ? AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY
-    : AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY;
+  let timestampKey: string;
+  if (sessionKey === AUTH_CONFIG.SACRAMENTAL_SESSION_KEY) {
+    timestampKey = AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY;
+  } else if (sessionKey === AUTH_CONFIG.BAPTISMAL_SESSION_KEY) {
+    timestampKey = AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY;
+  } else if (sessionKey === AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY) {
+    timestampKey = AUTH_CONFIG.WARD_COUNCIL_TIMESTAMP_KEY;
+  } else {
+    // Fallback
+    timestampKey = AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY;
+  }
   
   // Verificar se sessão expirou
   if (isSessionExpired(timestampKey)) {
@@ -306,13 +314,23 @@ export function logout(sessionKey: string): void {
   sessionStorage.removeItem(sessionKey);
   
   // Remover timestamp correspondente
-  const timestampKey = sessionKey === AUTH_CONFIG.SACRAMENTAL_SESSION_KEY
-    ? AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY
-    : AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY;
+  let timestampKey: string;
+  if (sessionKey === AUTH_CONFIG.SACRAMENTAL_SESSION_KEY) {
+    timestampKey = AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY;
+  } else if (sessionKey === AUTH_CONFIG.BAPTISMAL_SESSION_KEY) {
+    timestampKey = AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY;
+  } else if (sessionKey === AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY) {
+    timestampKey = AUTH_CONFIG.WARD_COUNCIL_TIMESTAMP_KEY;
+  } else {
+    // Fallback
+    timestampKey = AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY;
+  }
   
   sessionStorage.removeItem(timestampKey);
-}
-
+}WARD_COUNCIL_SESSION_KEY);
+  sessionStorage.removeItem(AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
+  sessionStorage.removeItem(AUTH_CONFIG.BAPTISMAL_TIMESTAMP_KEY);
+  sessionStorage.removeItem(AUTH_CONFIG.WARD_COUNCI
 /**
  * Limpar todas as autenticações
  */
