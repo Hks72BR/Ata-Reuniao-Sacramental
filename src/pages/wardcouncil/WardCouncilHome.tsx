@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { ErrorModal } from '@/components/ErrorModal';
 import { WardCouncilRecord, ActionItem, WARD_COUNCIL_RECORD_INITIAL } from '@/types';
-import { Download, Save, Plus, History, X, Check, Users } from 'lucide-react';
+import { Download, Save, Plus, History, X, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';

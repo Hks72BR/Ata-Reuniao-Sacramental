@@ -248,9 +248,7 @@ export default function WardCouncilView() {
       <ErrorModal
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
-        title="Erros na Ata"
         message="OS ERROS DEVEM SER CORRIGIDOS"
-        details="Certifique-se de que todos os campos obrigatórios foram preenchidos corretamente."
       />
     </div>
   );
