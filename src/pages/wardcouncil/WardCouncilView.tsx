@@ -26,7 +26,7 @@ export default function WardCouncilView() {
 
   useEffect(() => {
     // Verificar autenticação
-    if (!isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) {
+    if (!isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY)) {
       setLocation('/');
       return;
     }
