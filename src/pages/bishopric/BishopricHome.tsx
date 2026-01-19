@@ -34,7 +34,7 @@ export default function BishopricHome() {
       try {
         const parsed = JSON.parse(savedRecord);
         setRecord(parsed);
-        toast.success('Ata carregada para edição', { duration: 2000 });
+        toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-bishopric' });
       } catch (error) {
         console.error('Erro ao carregar ata salva:', error);
       }
@@ -122,6 +122,7 @@ export default function BishopricHome() {
       
       toast.success('✅ Ata de bispado salva com sucesso!', {
         duration: 3000,
+        className: 'toast-success-bishopric',
       });
 
       // Atualizar ID se for novo registro
@@ -152,7 +153,7 @@ export default function BishopricHome() {
       setRecord(BISHOPRIC_RECORD_INITIAL as BishopricRecord);
       setErrors({});
       localStorage.removeItem('bishopricRecord');
-      toast.success('Nova ata de bispado criada');
+      toast.success('Nova ata de bispado criada', { className: 'toast-success-bishopric' });
     }
   };
 
@@ -385,6 +386,7 @@ export default function BishopricHome() {
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         message="Por favor, corrija os erros na Ata de Bispado antes de salvar ou baixar."
+        theme="blue"
       />
     </div>
   );

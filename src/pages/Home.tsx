@@ -162,8 +162,7 @@ export default function Home() {
       
       setRecord({ ...updatedRecord, id });
       toast.success(`✅ ATA SALVA POR ${userName.toUpperCase()}`, {
-        duration: 2000,
-      });
+        duration: 2000,        className: 'toast-success-sacramental',      });
     } catch (error) {
       toast.error('❌ Erro ao salvar ata');
       console.error(error);
@@ -195,8 +194,7 @@ export default function Home() {
     const content = generateRecordText(record);
     downloadTextFile(content, `ata-sacramental-${record.date}.txt`);
     toast.success('✅ Download feito com sucesso', {
-      duration: 2000,
-    });
+      duration: 2000,      className: 'toast-success-sacramental',    });
   };
 
   const handleNewRecord = () => {
@@ -205,7 +203,7 @@ export default function Home() {
       setErrors({});
       setAnnouncementsLength(0);
       localStorage.removeItem('sacramentalRecord');
-      toast.success('Nova ata criada');
+      toast.success('Nova ata criada', { className: 'toast-success-sacramental' });
     }
   };
 
@@ -398,7 +396,7 @@ export default function Home() {
           </div>
 
           {/* Anúncios */}
-          <div className="reverent-card">
+          <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
             <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
               <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Anúncios
@@ -416,7 +414,7 @@ export default function Home() {
           </div>
 
           {/* Primeiro Hino e Oração */}
-          <div className="reverent-card">
+          <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
             <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
               <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Abertura
@@ -460,8 +458,9 @@ export default function Home() {
           />
 
           {/* Hino Sacramental */}
-          <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+          <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
+            <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Hino Sacramental
             </h3>
             <InputField
@@ -476,8 +475,9 @@ export default function Home() {
           {!isTestimonyMeeting ? (
             <>
               {/* Oradores - Reunião Regular */}
-              <div className="reverent-card">
-                <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+              <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
+                <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
                   Oradores
                 </h3>
                 <InputField
@@ -497,9 +497,10 @@ export default function Home() {
               </div>
 
               {/* Hino Intermediário */}
-              <div className="reverent-card">
-                <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
-                  Hino Intermediário <span className="text-lg text-gray-500 font-normal">(opcional)</span>
+              <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
+                <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
+                  Hino Intermediário <span className="text-sm text-gray-500 font-normal">(opcional)</span>
                 </h3>
                 <InputField
                   label="Hino Intermediário"
@@ -510,8 +511,9 @@ export default function Home() {
               </div>
 
               {/* Último Orador */}
-              <div className="reverent-card">
-                <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+              <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
+                <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+                  <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
                   Último Orador
                 </h3>
                 <InputField
@@ -554,8 +556,9 @@ export default function Home() {
           )}
 
           {/* Encerramento */}
-          <div className="reverent-card">
-            <h3 className="text-2xl font-bold text-foreground mb-6 font-serif">
+          <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
+            <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Encerramento
             </h3>
             <InputField
@@ -613,6 +616,7 @@ export default function Home() {
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         message="Por favor, corrija os erros na Ata antes de salvar ou baixar."
+        theme="sacramental"
       />
 
       {/* Modal de Identificação */}

@@ -40,7 +40,7 @@ export default function WardCouncilView() {
     if (!record) return;
     localStorage.setItem('wardCouncilRecord', JSON.stringify(record));
     setLocation('/wardcouncil');
-    toast.success('Ata carregada para edição', { duration: 2000 });
+    toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-wardcouncil' });
   };
 
   const handleSave = async () => {
@@ -57,12 +57,7 @@ export default function WardCouncilView() {
       await saveWardCouncilRecordToCloud(record);
       toast.success('ATA SALVA COM SUCESSO', {
         duration: 3000,
-        style: {
-          background: '#10b981',
-          color: 'white',
-          fontWeight: 'bold',
-          fontSize: '16px'
-        }
+        className: 'toast-success-wardcouncil',
       });
     } catch (error) {
       console.error('[WardCouncilView] Erro ao salvar:', error);

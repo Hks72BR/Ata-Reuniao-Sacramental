@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
-import { BaptismalErrorModal } from '@/components/BaptismalErrorModal';
+import { ErrorModal } from '@/components/ErrorModal';
 import { BaptismalRecord, OrdinanceItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -34,7 +34,7 @@ export default function BaptismalHome() {
       try {
         const parsed = JSON.parse(savedRecord);
         setRecord(parsed);
-        toast.success('Ata carregada para edição', { duration: 2000 });
+        toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-baptismal' });
       } catch (error) {
         console.error('Erro ao carregar ata salva:', error);
       }
@@ -96,6 +96,7 @@ export default function BaptismalHome() {
       
       toast.success('✅ Ata batismal salva com sucesso!', {
         duration: 3000,
+        className: 'toast-success-baptismal',
       });
 
       // Atualizar ID se for novo registro
@@ -126,7 +127,7 @@ export default function BaptismalHome() {
       setRecord(BAPTISMAL_RECORD_INITIAL as BaptismalRecord);
       setErrors({});
       localStorage.removeItem('baptismalRecord');
-      toast.success('Nova ata batismal criada');
+      toast.success('Nova ata batismal criada', { className: 'toast-success-baptismal' });
     }
   };
 
@@ -537,10 +538,11 @@ export default function BaptismalHome() {
       </div>
 
       {/* Modal de Erro */}
-      <BaptismalErrorModal
+      <ErrorModal
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         message="Por favor, corrija os erros na Ata Batismal antes de salvar ou baixar."
+        theme="baptismal"
       />
     </div>
   );

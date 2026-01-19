@@ -42,7 +42,7 @@ export default function WardCouncilHome() {
       try {
         const parsed = JSON.parse(savedRecord);
         setRecord(parsed);
-        toast.success('Ata carregada para edição', { duration: 2000 });
+        toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-wardcouncil' });
       } catch (error) {
         console.error('Erro ao carregar ata salva:', error);
       }
@@ -145,13 +145,7 @@ export default function WardCouncilHome() {
       
       toast.success('ATA SALVA COM SUCESSO', {
         duration: 5000,
-        style: {
-          background: '#10b981',
-          color: 'white',
-          fontWeight: 'bold',
-          fontSize: '18px',
-          padding: '20px'
-        }
+        className: 'toast-success-wardcouncil',
       });
 
       if (!record.id || !record.id.startsWith('ata-')) {
@@ -174,7 +168,7 @@ export default function WardCouncilHome() {
     if (window.confirm('Deseja criar uma nova ata? As alterações não salvas serão perdidas.')) {
       setRecord(WARD_COUNCIL_RECORD_INITIAL as WardCouncilRecord);
       localStorage.removeItem('wardCouncilRecord');
-      toast.success('Nova ata criada');
+      toast.success('Nova ata criada', { className: 'toast-success-wardcouncil' });
     }
   };
 
@@ -486,6 +480,7 @@ export default function WardCouncilHome() {
           isOpen={showErrorModal}
           onClose={() => setShowErrorModal(false)}
           message="OS ERROS DEVEM SER CORRIGIDOS"
+          theme="teal"
         />
       )}
 

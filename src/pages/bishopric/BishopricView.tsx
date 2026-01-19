@@ -5,16 +5,19 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { BishopricRecord } from '@/types';
-import { ArrowLeft, Check, X } from 'lucide-react';
+import { ArrowLeft, Check, X, Save, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
 import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
-import { getBishopricRecordFromCloud } from '@/lib/bishopricFirestore';
+import { getBishopricRecordFromCloud, saveBishopricRecordToCloud } from '@/lib/bishopricFirestore';
+import { ErrorModal } from '@/components/ErrorModal';
 
 export default function BishopricView() {
   const [record, setRecord] = useState<BishopricRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [, setLocation] = useLocation();
   const [location] = useLocation();
   
@@ -32,6 +35,55 @@ export default function BishopricView() {
       loadRecord(id);
     }
   }, [id]);
+
+  const handleEdit = () => {
+    if (!record) return;
+    localStorage.setItem('bishopricRecord', JSON.stringify(record));
+    setLocation('/bishopric');
+    toast.success('Ata carregada para edição', { duration: 2000 });
+  };
+
+  const handleSave = async () => {
+    if (!record) return;
+
+    // Validação básica com trim para verificar strings vazias
+    const isDateValid = record.date && record.date.trim() !== '';
+    const isPresidedByValid = record.presidedBy && record.presidedBy.trim() !== '';
+
+    if (!isDateValid || !isPresidedByValid) {
+      setShowErrorModal(true);
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await saveBishopricRecordToCloud(record);
+      
+      toast.success('✅ ATA SALVA COM SUCESSO!', {
+        duration: 3000,
+        className: 'toast-success-bishopric',
+      });
+    } catch (error) {
+      console.error('[BishopricView] Erro ao salvar:', error);
+      toast.error('❌ Erro ao salvar ata. Tente novamente.', {
+        duration: 4000,
+        className: 'toast-error',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleActionCompleted = (actionId: string) => {
+    if (!record) return;
+    
+    setRecord({
+      ...record,
+      actionItems: record.actionItems.map(action => 
+        action.id === actionId ? { ...action, completed: !action.completed } : action
+      )
+    });
+  };
 
   const loadRecord = async (recordId: string) => {
     try {
@@ -74,13 +126,22 @@ export default function BishopricView() {
       {/* Header */}
       <div className="bg-gradient-to-r from-[#2c3e50] via-[#34495e] to-[#2c3e50] shadow-xl">
         <div className="container max-w-4xl mx-auto py-8 px-4">
-          <Button
-            onClick={() => setLocation('/bishopric/history')}
-            className="mb-6 bg-white border-2 border-[#3498db] text-[#34495e] hover:bg-[#3498db] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
-          >
-            <ArrowLeft size={18} />
-            Voltar ao Histórico
-          </Button>
+          <div className="flex gap-3 mb-6 flex-wrap">
+            <Button
+              onClick={() => setLocation('/bishopric/history')}
+              className="flex-1 min-w-[200px] bg-white border-2 border-[#3498db] text-[#34495e] hover:bg-[#3498db] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+            >
+              <ArrowLeft size={18} />
+              Voltar ao Histórico
+            </Button>
+            <Button
+              onClick={handleEdit}
+              className="flex-1 min-w-[200px] bg-white border-2 border-amber-500 text-amber-700 hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+            >
+              <Edit size={18} />
+              Editar Ata
+            </Button>
+          </div>
           
           <div className="text-center">
             <div className="mb-4 inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full border-2 border-white">
@@ -123,14 +184,17 @@ export default function BishopricView() {
                       className="p-4 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border-2 border-[#3498db]/30"
                     >
                       <div className="flex items-start gap-3 mb-3">
-                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${
-                          action.completed
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-200 text-gray-600'
-                        }`}>
+                        <button
+                          onClick={() => toggleActionCompleted(action.id)}
+                          className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
+                            action.completed
+                              ? 'bg-green-500 text-white hover:bg-green-600'
+                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          }`}
+                        >
                           {action.completed ? <Check size={14} /> : <X size={14} />}
                           {action.completed ? 'Concluído' : 'Pendente'}
-                        </div>
+                        </button>
                       </div>
                       
                       <Field label="Descrição" value={action.description} />
@@ -164,8 +228,37 @@ export default function BishopricView() {
               </p>
             )}
           </div>
+
+          {/* Botão Salvar */}
+          <div className="mt-8 flex justify-center">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-gradient-to-r from-[#3498db] to-[#2980b9] hover:from-[#2980b9] hover:to-[#3498db] text-white px-12 py-3 text-lg font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+            >
+              {saving ? (
+                <>
+                  <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save size={20} />
+                  Salvar Alterações
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        message="Por favor, preencha todos os campos obrigatórios antes de salvar: Data e Presidida por."
+        theme="blue"
+      />
     </div>
   );
 }

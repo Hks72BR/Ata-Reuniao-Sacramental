@@ -306,3 +306,64 @@
     @apply w-1 h-6 bg-accent rounded-full;
   }
 }
+
+/* Custom Toast Styles */
+
+/* Bishopric - Azul/Cinza (#3498db, #2c3e50) */
+.toast-success-bishopric {
+  background: linear-gradient(to right, #3498db, #2980b9) !important;
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 18px !important;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(52, 152, 219, 0.3) !important;
+  border: none !important;
+}
+
+/* Ward Council - Teal/Verde (#0f5257, teal-600) */
+.toast-success-wardcouncil {
+  background: linear-gradient(to right, #0d9488, #059669) !important;
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 18px !important;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(13, 148, 136, 0.3) !important;
+  border: none !important;
+}
+
+/* Sacramental - Azul escuro/Dourado (#1e3a5f, #d4a574) */
+.toast-success-sacramental {
+  background: linear-gradient(to right, #1e3a5f, #24466e) !important;
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 18px !important;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(30, 58, 95, 0.3) !important;
+  border: none !important;
+}
+
+/* Baptismal - Turquesa/Verde água (#1a7a8a, #16a085) */
+.toast-success-baptismal {
+  background: linear-gradient(to right, #1e8b9f, #16a085) !important;
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 18px !important;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(22, 160, 133, 0.3) !important;
+  border: none !important;
+}
+
+/* Toast de Erro - Universal */
+.toast-error {
+  background: linear-gradient(to right, #e74c3c, #c0392b) !important;
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 16px !important;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  border: none !important;
+}

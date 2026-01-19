@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
 import { DeletePinModal } from '@/components/DeletePinModal';
 import { BishopricRecord } from '@/types';
-import { Eye, Trash2, Search, FileText, ArrowLeft } from 'lucide-react';
+import { Eye, Trash2, Search, FileText, ArrowLeft, Edit, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
@@ -80,6 +80,13 @@ export default function BishopricHistory() {
 
   const handleViewRecord = (record: BishopricRecord) => {
     setLocation(`/bishopric/view/${record.id}`);
+  };
+
+  const handleEditRecord = (record: BishopricRecord) => {
+    // Salvar ata no localStorage para edição
+    localStorage.setItem('bishopricRecord', JSON.stringify(record));
+    setLocation('/bishopric');
+    toast.info('📝 Ata carregada para edição');
   };
 
   const handleDeleteRecord = (record: BishopricRecord) => {
@@ -193,7 +200,11 @@ export default function BishopricHistory() {
               Total: {filteredRecords.length} {filteredRecords.length === 1 ? 'ata' : 'atas'}
             </h2>
             
-            {filteredRecords.map((record) => (
+            {filteredRecords.map((record) => {
+              const totalActions = record.actionItems.length;
+              const completedActions = record.actionItems.filter(a => a.completed).length;
+              
+              return (
               <div 
                 key={record.id} 
                 className="p-6 bg-white border-l-4 border-[#3498db] rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
@@ -205,33 +216,56 @@ export default function BishopricHistory() {
                     </h3>
                     <div className="space-y-1 text-sm text-gray-600">
                       <p><strong>Presidida por:</strong> {record.presidedBy}</p>
-                      {record.actionItems.length > 0 && (
-                        <p>
-                          <strong>Ações:</strong> {record.actionItems.length} {record.actionItems.length === 1 ? 'item' : 'itens'}
-                          {' '}({record.actionItems.filter(a => a.completed).length} concluído(s))
-                        </p>
+                      
+                      {/* Progresso de Ações */}
+                      {totalActions > 0 && (
+                        <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-slate-50 rounded-lg border border-blue-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold text-[#34495e] flex items-center gap-1">
+                              <CheckCircle2 size={14} />
+                              Itens de Ação
+                            </span>
+                            <span className="text-xs font-bold text-[#3498db]">
+                              {completedActions}/{totalActions} concluídos
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-gradient-to-r from-[#3498db] to-[#2980b9] h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${totalActions > 0 ? (completedActions / totalActions) * 100 : 0}%` }}
+                            ></div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
-                  
-                  <div className="flex gap-2 ml-4">
-                    <Button
-                      onClick={() => handleViewRecord(record)}
-                      className="bg-white border-2 border-[#3498db] text-[#3498db] hover:bg-[#3498db] hover:text-white transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 px-4 py-2"
-                      title="Visualizar ata"
-                    >
-                      <Eye size={18} />
-                      Ver
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteRecord(record)}
-                      className="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 px-4 py-2"
-                      title="Deletar ata"
-                    >
-                      <Trash2 size={18} />
-                      Deletar
-                    </Button>
-                  </div>
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    onClick={() => handleViewRecord(record)}
+                    className="bg-white border-2 border-[#3498db] text-[#3498db] hover:bg-[#3498db] hover:text-white transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 px-4 py-2"
+                    title="Visualizar ata"
+                  >
+                    <Eye size={18} />
+                    Ver
+                  </Button>
+                  <Button
+                    onClick={() => handleEditRecord(record)}
+                    className="bg-white border-2 border-amber-500 text-amber-700 hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 px-4 py-2"
+                    title="Editar ata"
+                  >
+                    <Edit size={18} />
+                    Editar
+                  </Button>
+                  <Button
+                    onClick={() => handleDeleteRecord(record)}
+                    className="bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 px-4 py-2"
+                    title="Deletar ata"
+                  >
+                    <Trash2 size={18} />
+                    Deletar
+                  </Button>
                 </div>
 
                 {record.discussedMatters && (
@@ -242,7 +276,7 @@ export default function BishopricHistory() {
                   </div>
                 )}
               </div>
-            ))}
+            )})}
 
             {filteredRecords.length === 0 && !loading && (
               <div className="text-center py-12 bg-white rounded-lg shadow-md">
