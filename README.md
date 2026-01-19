@@ -251,7 +251,7 @@ ata-sacramental-app/
 
 **Armazenamento:**
 - 💾 **IndexedDB** - Banco de dados local do navegador
-- ☁️ **Firebase Firestore** - Banco de dados em nuvem (opcional)
+- ☁️ **Firebase Firestore** - Banco de dados em nuvem
 - 🔄 **Service Worker** - Cache e funcionamento offline
 
 **Bibliotecas:**
@@ -403,7 +403,7 @@ VITE_FIREBASE_APP_ID=seu_app_id
 - [x] Dashboard com estatísticas
 
 #### 📅 Futuras Melhorias (v2.0)
-- [ ] Notificações push
+- [x] Notificações push
 - [ ] Backup automático para email
 - [x] Assinatura digital de atas
 - [ ] Modo multi-idioma (EN/ES/PT)
