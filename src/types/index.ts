@@ -19,6 +19,7 @@ export interface SacramentalRecord {
   
   // Anúncios
   announcements: string; // Máximo 1000 caracteres
+  stakeAnnouncements?: string; // Anúncios da Estaca - Máximo 500 caracteres
   
   // Hinos e Orações
   firstHymn: string;

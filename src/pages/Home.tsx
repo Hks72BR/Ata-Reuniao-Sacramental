@@ -25,6 +25,7 @@ export default function Home() {
   const [record, setRecord] = useState<SacramentalRecord>(SACRAMENTAL_RECORD_INITIAL as SacramentalRecord);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [announcementsLength, setAnnouncementsLength] = useState(0);
+  const [stakeAnnouncementsLength, setStakeAnnouncementsLength] = useState(0);
   const [testimoniesLength, setTestimoniesLength] = useState(0);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
@@ -53,6 +54,7 @@ export default function Home() {
         const parsed = JSON.parse(savedRecord);
         setRecord(parsed);
         setAnnouncementsLength(parsed.announcements?.length || 0);
+        setStakeAnnouncementsLength(parsed.stakeAnnouncements?.length || 0);
         setTestimoniesLength(parsed.testimonies?.length || 0);
       } catch (error) {
         console.error('Erro ao carregar ata salva:', error);
@@ -87,6 +89,11 @@ export default function Home() {
   const handleAnnouncementsChange = (value: string) => {
     setAnnouncementsLength(value.length);
     handleInputChange('announcements', value);
+  };
+
+  const handleStakeAnnouncementsChange = (value: string) => {
+    setStakeAnnouncementsLength(value.length);
+    handleInputChange('stakeAnnouncements', value);
   };
   
   const handleTestimoniesChange = (value: string) => {
@@ -410,6 +417,24 @@ export default function Home() {
               currentLength={announcementsLength}
               error={errors.announcements}
               helperText="Espaço para anúncios importantes da congregação"
+            />
+          </div>
+
+          {/* Anúncios da Estaca */}
+          <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
+            <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
+              Anúncios da Estaca
+            </h3>
+            <TextAreaField
+              label="Anúncios da Estaca"
+              value={record.stakeAnnouncements || ''}
+              onChange={(e) => handleStakeAnnouncementsChange(e.target.value)}
+              placeholder="Digite os anúncios da estaca aqui (máximo 500 caracteres)"
+              maxLength={500}
+              currentLength={stakeAnnouncementsLength}
+              error={errors.stakeAnnouncements}
+              helperText="Espaço para anúncios importantes da Estaca"
             />
           </div>
 
