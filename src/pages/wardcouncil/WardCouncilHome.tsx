@@ -143,9 +143,15 @@ export default function WardCouncilHome() {
       // Mostrar mensagem de sucesso
       alert('✅ ATA SALVA COM SUCESSO');
       
-      toast.success('ATA SALVA COM SUCESSO', {
-        duration: 5000,
+      toast.success('✅ ATA DE CONSELHO SALVA COM SUCESSO!', {
+        duration: 4000,
         className: 'toast-success-wardcouncil',
+        style: {
+          background: '#10b981',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        },
       });
 
       if (!record.id || !record.id.startsWith('ata-')) {

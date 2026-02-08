@@ -168,8 +168,17 @@ export default function Home() {
       localStorage.setItem('sacramentalRecord', JSON.stringify(updatedRecord));
       
       setRecord({ ...updatedRecord, id });
-      toast.success(`✅ ATA SALVA POR ${userName.toUpperCase()}`, {
-        duration: 2000,        className: 'toast-success-sacramental',      });
+      toast.success(`✅ ATA SALVA COM SUCESSO!`, {
+        duration: 4000,
+        className: 'toast-success-sacramental',
+        description: `Salva por ${userName}`,
+        style: {
+          background: '#10b981',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        },
+      });
     } catch (error) {
       toast.error('❌ Erro ao salvar ata');
       console.error(error);

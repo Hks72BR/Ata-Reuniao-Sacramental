@@ -94,9 +94,15 @@ export default function BaptismalHome() {
       // Salvar no Firebase
       const savedId = await saveBaptismalRecordToCloud(recordToSave);
       
-      toast.success('✅ Ata batismal salva com sucesso!', {
-        duration: 3000,
+      toast.success('✅ ATA BATISMAL SALVA COM SUCESSO!', {
+        duration: 4000,
         className: 'toast-success-baptismal',
+        style: {
+          background: '#10b981',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        },
       });
 
       // Atualizar ID se for novo registro

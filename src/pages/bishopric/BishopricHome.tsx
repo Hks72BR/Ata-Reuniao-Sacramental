@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { ErrorModal } from '@/components/ErrorModal';
 import { BishopricRecord, ActionItem, BISHOPRIC_RECORD_INITIAL } from '@/types';
-import { Download, Save, Plus, History, ArrowLeft, X, Check } from 'lucide-react';
+import { Download, Save, Plus, History, ArrowLeft, X, Check, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
@@ -120,9 +120,15 @@ export default function BishopricHome() {
       // Salvar no Firebase
       const savedId = await saveBishopricRecordToCloud(recordToSave);
       
-      toast.success('✅ Ata de bispado salva com sucesso!', {
-        duration: 3000,
+      toast.success('✅ ATA DE BISPADO SALVA COM SUCESSO!', {
+        duration: 4000,
         className: 'toast-success-bishopric',
+        style: {
+          background: '#10b981',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        },
       });
 
       // Atualizar ID se for novo registro
@@ -229,6 +235,13 @@ export default function BishopricHome() {
           >
             <History size={18} />
             Histórico
+          </Button>
+          <Button
+            onClick={() => setLocation('/bishopric/interviews')}
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#3498db] text-[#34495e] hover:bg-[#3498db] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+          >
+            <Calendar size={18} />
+            Entrevistas
           </Button>
           <Button
             onClick={handleNewRecord}

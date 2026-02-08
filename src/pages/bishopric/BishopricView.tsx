@@ -59,9 +59,15 @@ export default function BishopricView() {
       setSaving(true);
       await saveBishopricRecordToCloud(record);
       
-      toast.success('✅ ATA SALVA COM SUCESSO!', {
-        duration: 3000,
+      toast.success('✅ ATA DE BISPADO SALVA COM SUCESSO!', {
+        duration: 4000,
         className: 'toast-success-bishopric',
+        style: {
+          background: '#10b981',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        },
       });
     } catch (error) {
       console.error('[BishopricView] Erro ao salvar:', error);

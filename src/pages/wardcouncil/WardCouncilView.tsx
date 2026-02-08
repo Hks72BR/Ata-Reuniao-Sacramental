@@ -55,9 +55,15 @@ export default function WardCouncilView() {
     try {
       setSaving(true);
       await saveWardCouncilRecordToCloud(record);
-      toast.success('ATA SALVA COM SUCESSO', {
-        duration: 3000,
+      toast.success('✅ ATA DE CONSELHO SALVA COM SUCESSO!', {
+        duration: 4000,
         className: 'toast-success-wardcouncil',
+        style: {
+          background: '#10b981',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        },
       });
     } catch (error) {
       console.error('[WardCouncilView] Erro ao salvar:', error);

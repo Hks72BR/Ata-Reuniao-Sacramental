@@ -298,6 +298,35 @@ export const WARD_COUNCIL_RECORD_INITIAL: Partial<WardCouncilRecord> = {
   status: 'draft',
 };
 
+// ============================================
+// TIPOS PARA ENTREVISTAS DO BISPADO
+// ============================================
+
+export interface InterviewRecord {
+  id?: string;
+  date: string; // ISO date format
+  scheduledBy: string; // Quem agendou (secretário da ala ou executivo)
+  interviews: InterviewItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InterviewItem {
+  id: string;
+  personName: string; // Nome da pessoa a ser entrevistada
+  scheduledDate: string; // Data agendada
+  scheduledTime: string; // Horário agendado
+  responsibleMember?: string; // Membro do bispado responsável
+  completed: boolean; // Se a entrevista foi realizada
+  notes?: string; // Observações
+}
+
+export const INTERVIEW_RECORD_INITIAL: Partial<InterviewRecord> = {
+  date: new Date().toISOString().split('T')[0],
+  scheduledBy: '',
+  interviews: [],
+};
+
 export const VALIDATION_RULES = {
   presidedBy: {
     required: true,

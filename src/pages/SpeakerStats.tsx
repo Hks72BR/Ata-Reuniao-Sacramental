@@ -9,6 +9,7 @@ import { MembersListModal } from '@/components/MembersListModal';
 import { getAllRecords } from '@/lib/db';
 import { getMembersListFromCloud, saveMembersListToCloud } from '@/lib/firestore';
 import { SacramentalRecord } from '@/types';
+import { MEMBERS_LIST_SORTED } from '@/data/members';
 import { ArrowLeft, TrendingUp, Users, UserPlus, UserCheck, UserX } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
@@ -33,11 +34,22 @@ export default function SpeakerStats() {
 
   const loadMembersList = async () => {
     try {
-      const members = await getMembersListFromCloud();
-      setAllMembers(members);
+      // Tentar carregar do Firebase primeiro
+      const membersFromCloud = await getMembersListFromCloud();
+      if (membersFromCloud && membersFromCloud.length > 0) {
+        setAllMembers(membersFromCloud);
+      } else {
+        // Se não houver no Firebase, usar lista padrão
+        setAllMembers(MEMBERS_LIST_SORTED);
+        // Salvar no Firebase para próximas vezes
+        await saveMembersListToCloud(MEMBERS_LIST_SORTED);
+        toast.success('Lista de membros carregada do sistema');
+      }
     } catch (error) {
       console.error('Erro ao carregar lista de membros:', error);
-      toast.error('Erro ao carregar lista de membros do Firebase');
+      // Em caso de erro, usar lista padrão
+      setAllMembers(MEMBERS_LIST_SORTED);
+      toast.info('Usando lista de membros local');
     }
   };
 
