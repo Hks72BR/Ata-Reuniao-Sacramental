@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
 import { DeletePinModal } from '@/components/DeletePinModal';
 import { InterviewRecord } from '@/types';
-import { Eye, Trash2, Search, Calendar, ArrowLeft, Edit, CheckCircle2, Users } from 'lucide-react';
+import { Trash2, Search, Calendar, ArrowLeft, Edit, CheckCircle2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
@@ -316,8 +316,9 @@ export default function BishopricInterviewsHistory() {
       {/* Modal de Exclusão com PIN */}
       {showDeletePinModal && (
         <DeletePinModal
+          isOpen={showDeletePinModal}
+          onClose={handleDeletePinCancel}
           onSuccess={handleDeletePinSuccess}
-          onCancel={handleDeletePinCancel}
           recordDate={recordToDeleteDate}
         />
       )}
