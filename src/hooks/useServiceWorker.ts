@@ -19,38 +19,26 @@ export function useServiceWorker() {
           console.log('✅ Service Worker pronto!');
           setSwReady(true);
           setSwRegistration(registration);
-
-          // Verificar atualizações a cada 60 segundos
-          setInterval(() => {
-            registration.update();
-          }, 60000);
         })
         .catch((error) => {
           console.error('❌ Erro ao verificar Service Worker:', error);
         });
-
-      // Ouvir mensagens do Service Worker
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'SW_UPDATED') {
-          console.log('🔄 Nova versão detectada! Recarregando...');
-          // Recarregar página após 1 segundo
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        }
-      });
-
-      // Ouvir por novas versões do SW (controllerchange)
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('🔄 Service Worker atualizado!');
-        // Não recarregar aqui, pois já vamos recarregar com a mensagem SW_UPDATED
-      });
     }
 
     // Ouvir mudanças de conexão
     const handleOnline = () => {
       console.log('🌐 Conexão restaurada');
       setIsOnline(true);
+      
+      // Quando voltar online, verificar por atualizações
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg) {
+            console.log('🔍 Verificando atualizações ao voltar online...');
+            reg.update();
+          }
+        });
+      }
     };
     
     const handleOffline = () => {

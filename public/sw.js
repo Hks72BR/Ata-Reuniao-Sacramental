@@ -5,7 +5,7 @@
  */
 
 // Versão baseada em timestamp - atualiza automaticamente a cada build
-const BUILD_TIMESTAMP = '2026-02-15T22:49:49.555Z'; // Será substituído no build
+const BUILD_TIMESTAMP = '2026-02-15T22:57:24.780Z'; // Será substituído no build
 const CACHE_VERSION = `v${new Date(BUILD_TIMESTAMP).getTime()}`;
 const CACHE_NAME = `ata-sacramental-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ata-sacramental-runtime-${CACHE_VERSION}`;
@@ -81,7 +81,7 @@ self.addEventListener('activate', (event) => {
 });
 
 
-// Estratégia CACHE FIRST - Offline First!
+// Estratégia CACHE FIRST - Offline First (exceto para HTML/JS/CSS)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -98,6 +98,43 @@ self.addEventListener('fetch', (event) => {
   ) {
     // Para Firebase: tentar rede, sem cache
     event.respondWith(fetch(request));
+    return;
+  }
+
+  // Para HTML, JS e CSS: NETWORK FIRST (sempre pega versão nova se houver internet)
+  if (
+    request.headers.get('accept')?.includes('text/html') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname === '/' ||
+    url.pathname === '/index.html'
+  ) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Cachear a nova versão
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Se falhar, usar cache
+          return caches.match(request).then((cachedResponse) => {
+            if (cachedResponse) {
+              console.log(`[SW] Offline - usando cache para: ${url.pathname}`);
+              return cachedResponse;
+            }
+            return new Response('Offline - recurso não disponível', {
+              status: 503,
+              statusText: 'Service Unavailable',
+            });
+          });
+        })
+    );
     return;
   }
 

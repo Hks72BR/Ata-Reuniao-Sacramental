@@ -2,6 +2,9 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -23,6 +26,16 @@
     <!-- Service Worker Registration - Inline para garantir registro imediato -->
     <script>
       if ('serviceWorker' in navigator) {
+        let refreshing = false;
+        
+        // Detectar quando o controller muda (nova versão ativa)
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          console.log('🔄 Nova versão ativa! Recarregando...');
+          window.location.reload();
+        });
+        
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js', { 
             scope: '/',
@@ -31,24 +44,50 @@
             .then(registration => {
               console.log('✅ Service Worker registrado:', registration.scope);
               
-              // Verificar atualizações imediatamente
-              registration.update();
+              // Função para verificar e instalar atualizações
+              const checkForUpdates = () => {
+                registration.update().then(() => {
+                  console.log('🔍 Verificação de atualização concluída');
+                });
+              };
               
-              // Verificar atualizações a cada 30 segundos
-              setInterval(() => {
-                registration.update();
-              }, 30000);
+              // Verificar imediatamente
+              checkForUpdates();
+              
+              // Verificar a cada 5 segundos nos primeiros 2 minutos
+              let quickCheckCount = 0;
+              const quickCheckInterval = setInterval(() => {
+                checkForUpdates();
+                quickCheckCount++;
+                if (quickCheckCount >= 24) { // 24 * 5s = 2 minutos
+                  clearInterval(quickCheckInterval);
+                }
+              }, 5000);
+              
+              // Depois, verificar a cada 60 segundos
+              setInterval(checkForUpdates, 60000);
               
               // Detectar quando há uma atualização esperando
               registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 console.log('🆕 Nova versão encontrada!');
                 
-                newWorker?.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('✨ Nova versão instalada e pronta!');
-                  }
-                });
+                if (newWorker) {
+                  newWorker.addEventListener('statechange', () => {
+                    console.log('📦 Estado do novo SW:', newWorker.state);
+                    
+                    if (newWorker.state === 'installed') {
+                      if (navigator.serviceWorker.controller) {
+                        // Há um SW antigo, forçar a trocar para o novo
+                        console.log('✨ Nova versão instalada! Forçando ativação...');
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      } else {
+                        // Primeira instalação
+                        console.log('🎉 Service Worker instalado pela primeira vez!');
+                      }
+                    }
+                  });
+                }
               });
             })
             .catch(error => {
