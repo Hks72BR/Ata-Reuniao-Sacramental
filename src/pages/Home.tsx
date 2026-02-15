@@ -29,6 +29,7 @@ export default function Home() {
   const [testimoniesLength, setTestimoniesLength] = useState(0);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
   
@@ -56,11 +57,41 @@ export default function Home() {
         setAnnouncementsLength(parsed.announcements?.length || 0);
         setStakeAnnouncementsLength(parsed.stakeAnnouncements?.length || 0);
         setTestimoniesLength(parsed.testimonies?.length || 0);
+        
+        // Verificar quando foi o último auto-save
+        const lastSave = localStorage.getItem('sacramentalRecord_lastSave');
+        if (lastSave) {
+          setLastAutoSave(new Date(lastSave));
+        }
       } catch (error) {
         console.error('Erro ao carregar ata salva:', error);
       }
     }
   }, []);
+
+  // Auto-save a cada 60 segundos (silencioso, apenas localStorage)
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      // Verificar se há algum dado preenchido antes de salvar
+      const hasData = record.presidedBy || record.directedBy || record.date || 
+                      record.firstHymn || record.announcements || 
+                      record.supportAndRelease.length > 0 || record.ordinances.length > 0;
+      
+      if (hasData) {
+        try {
+          localStorage.setItem('sacramentalRecord', JSON.stringify(record));
+          const now = new Date();
+          localStorage.setItem('sacramentalRecord_lastSave', now.toISOString());
+          setLastAutoSave(now);
+          console.log('💾 Auto-save realizado:', now.toLocaleTimeString('pt-BR'));
+        } catch (error) {
+          console.error('Erro no auto-save:', error);
+        }
+      }
+    }, 60000); // 60 segundos
+
+    return () => clearInterval(autoSaveInterval);
+  }, [record]);
 
   const handleInputChange = (field: keyof SacramentalRecord, value: any) => {
     setRecord((prev) => {
@@ -167,6 +198,10 @@ export default function Home() {
       // Manter cópia em localStorage para edição rápida
       localStorage.setItem('sacramentalRecord', JSON.stringify(updatedRecord));
       
+      // Limpar timestamp de auto-save (já foi salvo oficialmente)
+      localStorage.removeItem('sacramentalRecord_lastSave');
+      setLastAutoSave(null);
+      
       setRecord({ ...updatedRecord, id });
       toast.success(`✅ ATA SALVA COM SUCESSO!`, {
         duration: 4000,
@@ -219,6 +254,8 @@ export default function Home() {
       setErrors({});
       setAnnouncementsLength(0);
       localStorage.removeItem('sacramentalRecord');
+      localStorage.removeItem('sacramentalRecord_lastSave');
+      setLastAutoSave(null);
       toast.success('Nova ata criada', { className: 'toast-success-sacramental' });
     }
   };
@@ -264,6 +301,21 @@ export default function Home() {
             Ata Sacramental
           </h1>
           <div className="h-1 w-32 bg-gradient-to-r from-transparent via-[#d4a574] to-transparent mx-auto mb-4"></div>
+          
+          {/* Indicador de Auto-save */}
+          {lastAutoSave && (
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+                <svg className="w-3.5 h-3.5 text-green-300" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-xs text-white/90 font-medium">
+                  Rascunho salvo às {lastAutoSave.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </div>
+          )}
+          
           <p className="text-white/95 text-lg md:text-xl font-light tracking-wide">
             A Igreja de Jesus Cristo dos Santos dos Últimos Dias
           </p>
@@ -543,21 +595,6 @@ export default function Home() {
                   placeholder="Número ou nome do hino"
                 />
               </div>
-
-              {/* Último Orador */}
-              <div className="bg-white p-6 rounded-xl border-l-4 border-[#d4a574] shadow-md hover:shadow-lg transition-shadow">
-                <h3 className="text-xl font-bold text-[#1e3a5f] mb-4 font-playfair flex items-center gap-2">
-                  <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
-                  Último Orador
-                </h3>
-                <InputField
-                  label="Último Orador"
-                  value={record.lastSpeaker}
-                  onChange={(e) => handleInputChange('lastSpeaker', e.target.value)}
-                  placeholder="Nome do último orador"
-                  error={errors.lastSpeaker}
-                />
-              </div>
             </>
           ) : (
             <>
@@ -595,6 +632,15 @@ export default function Home() {
               <span className="w-2 h-2 bg-[#d4a574] rounded-full"></span>
               Encerramento
             </h3>
+            {(!isTestimonyMeeting) && (
+              <InputField
+                label="Último Orador"
+                value={record.lastSpeaker}
+                onChange={(e) => handleInputChange('lastSpeaker', e.target.value)}
+                placeholder="Nome do último orador"
+                error={errors.lastSpeaker}
+              />
+            )}
             <InputField
               label="Último Hino"
               value={record.lastHymn}

@@ -1,6 +1,7 @@
 /**
  * Hook para gerenciar Service Worker e status de conexão
  * Garante funcionalidade 100% offline
+ * Com atualização automática forçada
  */
 
 import { useEffect, useState } from 'react';
@@ -19,19 +20,30 @@ export function useServiceWorker() {
           setSwReady(true);
           setSwRegistration(registration);
 
-          // Verificar atualizações a cada 2 minutos
+          // Verificar atualizações a cada 60 segundos
           setInterval(() => {
             registration.update();
-          }, 120000);
+          }, 60000);
         })
         .catch((error) => {
           console.error('❌ Erro ao verificar Service Worker:', error);
         });
 
-      // Ouvir por novas versões do SW
+      // Ouvir mensagens do Service Worker
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          console.log('🔄 Nova versão detectada! Recarregando...');
+          // Recarregar página após 1 segundo
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      });
+
+      // Ouvir por novas versões do SW (controllerchange)
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('🔄 Nova versão do Service Worker ativa!');
-        // Pode recarregar a página ou notificar o usuário
+        console.log('🔄 Service Worker atualizado!');
+        // Não recarregar aqui, pois já vamos recarregar com a mensagem SW_UPDATED
       });
     }
 

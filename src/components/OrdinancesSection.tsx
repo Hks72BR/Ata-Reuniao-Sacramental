@@ -15,12 +15,12 @@ interface OrdinancesSectionProps {
 }
 
 export function OrdinancesSection({ items, onItemsChange, errors, showChildBlessing = true }: OrdinancesSectionProps) {
-  const addOrdinance = (type: 'confirmation' | 'child-blessing') => {
+  const addOrdinance = (type: 'confirmation' | 'child-blessing' | 'new-member-support') => {
     const newOrdinance: OrdinanceItem = {
       id: Date.now().toString(),
       type,
       fullName: '',
-      performedBy: '',
+      performedBy: type === 'new-member-support' ? undefined : '',
       notes: '',
     };
     onItemsChange([...items, newOrdinance]);
@@ -37,8 +37,10 @@ export function OrdinancesSection({ items, onItemsChange, errors, showChildBless
     onItemsChange(items.filter((item) => item.id !== id));
   };
 
-  const getOrdinanceTypeLabel = (type: 'confirmation' | 'child-blessing') => {
-    return type === 'confirmation' ? 'Confirmação de Batismo' : 'Apresentação de Criança';
+  const getOrdinanceTypeLabel = (type: 'confirmation' | 'child-blessing' | 'new-member-support') => {
+    if (type === 'confirmation') return 'Confirmação de Batismo';
+    if (type === 'child-blessing') return 'Apresentação de Criança';
+    return 'Apoio a Membro Novo';
   };
 
   return (
@@ -49,8 +51,8 @@ export function OrdinancesSection({ items, onItemsChange, errors, showChildBless
         </h3>
         <p className="text-sm text-gray-600">
           {showChildBlessing 
-            ? 'Registre confirmações de batismo e apresentações de crianças realizadas durante a reunião'
-            : 'Registre confirmações de batismo realizadas durante o serviço'}
+            ? 'Registre confirmações de batismo, apoio a membros novos e apresentações de crianças realizadas durante a reunião'
+            : 'Registre confirmações de batismo e apoio a membros novos realizados durante o serviço'}
         </p>
       </div>
 
@@ -79,19 +81,21 @@ export function OrdinancesSection({ items, onItemsChange, errors, showChildBless
 
             <div className="space-y-3">
               <InputField
-                label={item.type === 'confirmation' ? 'Nome do Confirmado' : 'Nome da Criança'}
+                label={item.type === 'confirmation' ? 'Nome do Confirmado' : item.type === 'child-blessing' ? 'Nome da Criança' : 'Nome do Membro Novo'}
                 value={item.fullName}
                 onChange={(e) => updateOrdinance(item.id, 'fullName', e.target.value)}
                 placeholder="Nome completo"
                 error={errors?.[`ordinance-${item.id}-fullName`]}
               />
               
-              <InputField
-                label={item.type === 'confirmation' ? 'Quem Realizou a Confirmação' : 'Quem Abençoou a Criança'}
-                value={item.performedBy || ''}
-                onChange={(e) => updateOrdinance(item.id, 'performedBy', e.target.value)}
-                placeholder="Nome de quem realizou a ordenança"
-              />
+              {item.type !== 'new-member-support' && (
+                <InputField
+                  label={item.type === 'confirmation' ? 'Quem Realizou a Confirmação' : 'Quem Abençoou a Criança'}
+                  value={item.performedBy || ''}
+                  onChange={(e) => updateOrdinance(item.id, 'performedBy', e.target.value)}
+                  placeholder="Nome de quem realizou a ordenança"
+                />
+              )}
 
               <InputField
                 label="Observações (opcional)"
@@ -119,6 +123,15 @@ export function OrdinancesSection({ items, onItemsChange, errors, showChildBless
         >
           <Plus size={18} />
           Adicionar Confirmação
+        </Button>
+        
+        <Button
+          type="button"
+          onClick={() => addOrdinance('new-member-support')}
+          className="flex-1 min-w-[200px] bg-white border-2 border-[#d4a574] text-[#1e3a5f] hover:bg-[#d4a574] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+        >
+          <Plus size={18} />
+          Adicionar Apoio a Membro Novo
         </Button>
         
         {showChildBlessing && (

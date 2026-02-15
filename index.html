@@ -24,14 +24,32 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          navigator.serviceWorker.register('/sw.js', { 
+            scope: '/',
+            updateViaCache: 'none' // Nunca cachear o próprio SW
+          })
             .then(registration => {
               console.log('✅ Service Worker registrado:', registration.scope);
+              
+              // Verificar atualizações imediatamente
+              registration.update();
               
               // Verificar atualizações a cada 30 segundos
               setInterval(() => {
                 registration.update();
               }, 30000);
+              
+              // Detectar quando há uma atualização esperando
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🆕 Nova versão encontrada!');
+                
+                newWorker?.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('✨ Nova versão instalada e pronta!');
+                  }
+                });
+              });
             })
             .catch(error => {
               console.error('❌ Erro ao registrar Service Worker:', error);

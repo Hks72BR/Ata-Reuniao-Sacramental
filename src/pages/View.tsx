@@ -272,7 +272,7 @@ export default function View() {
                   <div key={item.id} className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                     <p className="text-sm font-['Poppins'] mb-2">
                       <span className="font-semibold text-blue-600">
-                        {item.type === 'confirmation' ? '✓ Confirmação de Batismo' : '✦ Apresentação de Criança'}:
+                        {item.type === 'confirmation' ? '✓ Confirmação de Batismo' : item.type === 'child-blessing' ? '✦ Apresentação de Criança' : '♥ Apoio a Membro Novo'}:
                       </span>{' '}
                       <span className="font-semibold">{item.fullName}</span>
                     </p>
@@ -376,7 +376,6 @@ export default function View() {
                 <Field label="Primeiro Orador" value={record.firstSpeaker} />
                 <Field label="Segundo Orador" value={record.secondSpeaker} />
                 <Field label="Hino Intermediário" value={record.intermediateHymn} />
-                <Field label="Último Orador" value={record.lastSpeaker} />
               </div>
             </Section>
           )}
@@ -384,6 +383,9 @@ export default function View() {
           {/* Encerramento */}
           <Section title="Encerramento">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {record.lastSpeaker && (record.meetingType !== 'testimony' && !isFirstSunday(record.date)) && (
+                <Field label="Último Orador" value={record.lastSpeaker} />
+              )}
               <Field label="Último Hino" value={record.lastHymn} />
               <Field label="Última Oração" value={record.lastPrayer} />
             </div>

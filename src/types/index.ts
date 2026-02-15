@@ -77,9 +77,9 @@ export interface SupportAndReleaseItem {
 
 export interface OrdinanceItem {
   id: string;
-  type: 'confirmation' | 'child-blessing'; // confirmação ou apresentação de criança
+  type: 'confirmation' | 'child-blessing' | 'new-member-support'; // confirmação, apresentação de criança ou apoio a membro novo
   fullName: string;
-  performedBy?: string; // Quem realizou a ordenança
+  performedBy?: string; // Quem realizou a ordenança (não usado para new-member-support)
   notes?: string;
 }
 

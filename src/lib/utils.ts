@@ -73,7 +73,10 @@ export function generateRecordText(record: SacramentalRecord): string {
     text += `ORDENANÇAS\n`;
     text += `${'-'.repeat(60)}\n`;
     record.ordinances.forEach((item) => {
-      const type = item.type === 'confirmation' ? 'Confirmação de Batismo' : 'Apresentação de Criança';
+      let type = 'Confirmação de Batismo';
+      if (item.type === 'child-blessing') type = 'Apresentação de Criança';
+      if (item.type === 'new-member-support') type = 'Apoio a Membro Novo';
+      
       text += `${type}: ${item.fullName}\n`;
       if (item.performedBy) {
         text += `  Realizado por: ${item.performedBy}\n`;
@@ -122,12 +125,14 @@ export function generateRecordText(record: SacramentalRecord): string {
     text += `${'-'.repeat(60)}\n`;
     text += `1º Orador: ${record.firstSpeaker}\n`;
     text += `2º Orador: ${record.secondSpeaker}\n`;
-    text += `Hino Intermediário: ${record.intermediateHymn}\n`;
-    text += `Último Orador: ${record.lastSpeaker}\n\n`;
+    text += `Hino Intermediário: ${record.intermediateHymn}\n\n`;
   }
 
-  text += `HINOS E ORAÇÃO FINAL\n`;
+  text += `ENCERRAMENTO\n`;
   text += `${'-'.repeat(60)}\n`;
+  if (record.lastSpeaker && record.meetingType !== 'testimony' && !isFirstSunday(record.date)) {
+    text += `Último Orador: ${record.lastSpeaker}\n`;
+  }
   text += `Último Hino: ${record.lastHymn}\n`;
   text += `Última Oração: ${record.lastPrayer}\n`;
 

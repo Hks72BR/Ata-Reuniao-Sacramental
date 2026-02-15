@@ -1,9 +1,12 @@
 /**
  * Service Worker - Ata Sacramental
  * Funcionalidade 100% offline com Cache First
+ * Com atualização automática forçada
  */
 
-const CACHE_VERSION = 'v4';
+// Versão baseada em timestamp - atualiza automaticamente a cada build
+const BUILD_TIMESTAMP = '2026-02-15T22:49:49.555Z'; // Será substituído no build
+const CACHE_VERSION = `v${new Date(BUILD_TIMESTAMP).getTime()}`;
 const CACHE_NAME = `ata-sacramental-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ata-sacramental-runtime-${CACHE_VERSION}`;
 
@@ -21,7 +24,7 @@ const CRITICAL_URLS = [
 
 // Instalar Service Worker e fazer cache AGRESSIVO
 self.addEventListener('install', (event) => {
-  console.log('[SW] Instalando Service Worker...');
+  console.log(`[SW] Instalando Service Worker versão ${CACHE_VERSION}...`);
   
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -38,7 +41,7 @@ self.addEventListener('install', (event) => {
       await Promise.allSettled(cachePromises);
       console.log('[SW] Cache inicial completo!');
       
-      // Força ativação imediata
+      // Força ativação imediata (pula a espera)
       return self.skipWaiting();
     })
   );
@@ -46,7 +49,7 @@ self.addEventListener('install', (event) => {
 
 // Ativar Service Worker IMEDIATAMENTE
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Ativando Service Worker...');
+  console.log(`[SW] Ativando Service Worker versão ${CACHE_VERSION}...`);
   
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -63,6 +66,16 @@ self.addEventListener('activate', (event) => {
       console.log('[SW] Service Worker ativado!');
       // Assumir controle imediato de todas as páginas
       return self.clients.claim();
+    }).then(() => {
+      // Notificar todas as janelas abertas que há uma nova versão
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATED',
+            version: CACHE_VERSION
+          });
+        });
+      });
     })
   );
 });
