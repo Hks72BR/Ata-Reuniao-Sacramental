@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { ErrorModal } from '@/components/ErrorModal';
-import { BaptismalRecord, OrdinanceItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
+import { BaptismalRecord, OrdinanceItem, BaptismItem, BAPTISMAL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
@@ -33,8 +33,30 @@ export default function BaptismalHome() {
     if (savedRecord) {
       try {
         const parsed = JSON.parse(savedRecord);
-        setRecord(parsed);
-        toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-baptismal' });
+        
+        // Migração automática de formato antigo para novo
+        if (parsed.personBeingBaptized || parsed.personPerformingBaptism) {
+          // Formato antigo detectado - converter para novo formato
+          const migratedRecord = {
+            ...parsed,
+            baptisms: [{
+              id: Date.now().toString(),
+              personBeingBaptized: parsed.personBeingBaptized || '',
+              personPerformingBaptism: parsed.personPerformingBaptism || '',
+              witnesses: parsed.witnesses || ['', ''],
+            }],
+          };
+          // Remover campos antigos
+          delete migratedRecord.personBeingBaptized;
+          delete migratedRecord.personPerformingBaptism;
+          delete migratedRecord.witnesses;
+          
+          setRecord(migratedRecord);
+          toast.success('Ata carregada e atualizada para o novo formato', { duration: 2000, className: 'toast-success-baptismal' });
+        } else {
+          setRecord(parsed);
+          toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-baptismal' });
+        }
       } catch (error) {
         console.error('Erro ao carregar ata salva:', error);
       }
@@ -52,10 +74,30 @@ export default function BaptismalHome() {
     }
   };
 
-  const handleWitnessChange = (index: number, value: string) => {
-    const newWitnesses = [...record.witnesses];
-    newWitnesses[index] = value;
-    setRecord((prev) => ({ ...prev, witnesses: newWitnesses }));
+  const handleBaptismsChange = (items: BaptismItem[]) => {
+    setRecord((prev) => ({
+      ...prev,
+      baptisms: items,
+    }));
+  };
+
+  const handleBaptismFieldChange = (baptismId: string, field: keyof BaptismItem, value: any) => {
+    const updatedBaptisms = record.baptisms?.map((baptism) =>
+      baptism.id === baptismId ? { ...baptism, [field]: value } : baptism
+    );
+    handleBaptismsChange(updatedBaptisms || []);
+  };
+
+  const handleWitnessChange = (baptismId: string, index: number, value: string) => {
+    const updatedBaptisms = record.baptisms?.map((baptism) => {
+      if (baptism.id === baptismId) {
+        const newWitnesses = [...baptism.witnesses];
+        newWitnesses[index] = value;
+        return { ...baptism, witnesses: newWitnesses };
+      }
+      return baptism;
+    });
+    handleBaptismsChange(updatedBaptisms || []);
   };
 
   const handleOrdinancesChange = (items: OrdinanceItem[]) => {
@@ -78,9 +120,21 @@ export default function BaptismalHome() {
         toast.error('Data é obrigatória');
         return;
       }
-      if (!record.personBeingBaptized) {
-        toast.error('Nome da pessoa batizada é obrigatório');
+      if (!record.baptisms || record.baptisms.length === 0) {
+        toast.error('Adicione pelo menos um batismo');
         return;
+      }
+
+      // Validar cada batismo
+      for (const baptism of record.baptisms) {
+        if (!baptism.personBeingBaptized) {
+          toast.error('Nome da pessoa batizada é obrigatório em todos os batismos');
+          return;
+        }
+        if (!baptism.personPerformingBaptism) {
+          toast.error('Quem realiza o batismo é obrigatório em todos os batismos');
+          return;
+        }
       }
 
       // Preparar record com status e timestamps
@@ -135,13 +189,6 @@ export default function BaptismalHome() {
       localStorage.removeItem('baptismalRecord');
       toast.success('Nova ata batismal criada', { className: 'toast-success-baptismal' });
     }
-  };
-
-  const getBaptismInstructionText = () => {
-    const location = record.baptismLocation === 'baptism-room' 
-      ? ', deveremos seguir para a sala do batismo' 
-      : '';
-    return `Agora passaremos para a parte Batismal onde será feito a ordenança do irmão(ã) ${record.personBeingBaptized || '[Nome]'}${location}.`;
   };
 
   return (
@@ -333,15 +380,7 @@ export default function BaptismalHome() {
               Parte Batismal
             </h3>
             
-            {/* Instrução gerada automaticamente */}
-            <div className="mb-6 p-4 bg-white rounded-lg border border-[#16a085]/30">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Instrução para o dirigente:</p>
-              <p className="text-base text-[#1e8b9f] leading-relaxed italic">
-                "{getBaptismInstructionText()}"
-              </p>
-            </div>
-
-            <div className="mb-4">
+            <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Local do Batismo
               </label>
@@ -355,57 +394,137 @@ export default function BaptismalHome() {
               </select>
             </div>
 
-            <InputField
-              label="Nome da Pessoa Sendo Batizada"
-              value={record.personBeingBaptized}
-              onChange={(e) => handleInputChange('personBeingBaptized', e.target.value)}
-              placeholder="Nome completo"
-              required
-            />
+            {/* Lista de Batismos */}
+            <div className="space-y-6 mb-6">
+              {record.baptisms?.map((baptism, baptismIndex) => (
+                <div
+                  key={baptism.id}
+                  className="p-5 bg-white rounded-xl border-2 border-[#16a085]/40 shadow-md"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-[#16a085] text-white text-sm font-semibold rounded-full">
+                        Batismo {baptismIndex + 1}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        const updatedBaptisms = record.baptisms?.filter((b) => b.id !== baptism.id);
+                        handleBaptismsChange(updatedBaptisms || []);
+                      }}
+                      className="p-2 h-auto bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
+                      title="Remover batismo"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
 
-            <InputField
-              label="Quem Realiza a Ordenança do Batismo"
-              value={record.personPerformingBaptism}
-              onChange={(e) => handleInputChange('personPerformingBaptism', e.target.value)}
-              placeholder="Nome completo de quem batiza"
-              required
-            />
+                  <div className="space-y-4">
+                    <InputField
+                      label="Nome da Pessoa Sendo Batizada"
+                      value={baptism.personBeingBaptized}
+                      onChange={(e) => handleBaptismFieldChange(baptism.id, 'personBeingBaptized', e.target.value)}
+                      placeholder="Nome completo"
+                      required
+                    />
 
-            {/* Chamado às águas */}
-            <div className="my-6 p-4 bg-white rounded-lg border border-[#16a085]/30">
-              <p className="text-sm font-semibold text-gray-600 mb-2">Chamado às águas:</p>
-              <p className="text-base text-[#1e8b9f] leading-relaxed">
-                "Chamamos às águas do batismo <span className="font-semibold">{record.personPerformingBaptism || '[nome de quem batiza]'}</span>. 
-                Chamamos às águas do batismo <span className="font-semibold">{record.personBeingBaptized || '[nome da pessoa sendo batizada]'}</span>."
-              </p>
-            </div>
+                    <InputField
+                      label="Quem Realiza a Ordenança do Batismo"
+                      value={baptism.personPerformingBaptism}
+                      onChange={(e) => handleBaptismFieldChange(baptism.id, 'personPerformingBaptism', e.target.value)}
+                      placeholder="Nome completo de quem batiza"
+                      required
+                    />
 
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">Testemunhas do Batismo</label>
-              {record.witnesses.map((witness, index) => (
-                <InputField
-                  key={index}
-                  label={`Testemunha ${index + 1}`}
-                  value={witness}
-                  onChange={(e) => handleWitnessChange(index, e.target.value)}
-                  placeholder="Nome completo da testemunha"
-                />
+                    {/* Chamado às águas específico deste batismo */}
+                    <div className="my-4 p-4 bg-cyan-50 rounded-lg border border-[#16a085]/30">
+                      <p className="text-sm font-semibold text-gray-600 mb-2">Chamado às águas:</p>
+                      <p className="text-base text-[#1e8b9f] leading-relaxed">
+                        "Chamamos às águas do batismo <span className="font-semibold">{baptism.personPerformingBaptism || '[nome de quem batiza]'}</span>. 
+                        Chamamos às águas do batismo <span className="font-semibold">{baptism.personBeingBaptized || '[nome da pessoa sendo batizada]'}</span>."
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="block text-sm font-medium text-gray-700">Testemunhas do Batismo</label>
+                      {baptism.witnesses.map((witness, witnessIndex) => (
+                        <div key={witnessIndex} className="flex gap-2">
+                          <InputField
+                            label={`Testemunha ${witnessIndex + 1}`}
+                            value={witness}
+                            onChange={(e) => handleWitnessChange(baptism.id, witnessIndex, e.target.value)}
+                            placeholder="Nome completo da testemunha"
+                          />
+                          {baptism.witnesses.length > 2 && (
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                const updatedBaptisms = record.baptisms?.map((b) => {
+                                  if (b.id === baptism.id) {
+                                    const newWitnesses = b.witnesses.filter((_, i) => i !== witnessIndex);
+                                    return { ...b, witnesses: newWitnesses };
+                                  }
+                                  return b;
+                                });
+                                handleBaptismsChange(updatedBaptisms || []);
+                              }}
+                              className="mt-6 p-2 h-10 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
+                              title="Remover testemunha"
+                            >
+                              <X size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          const updatedBaptisms = record.baptisms?.map((b) =>
+                            b.id === baptism.id ? { ...b, witnesses: [...b.witnesses, ''] } : b
+                          );
+                          handleBaptismsChange(updatedBaptisms || []);
+                        }}
+                        className="w-full mt-2 bg-[#16a085] hover:bg-[#149174] text-white"
+                      >
+                        <Plus size={16} className="mr-2" />
+                        Adicionar Testemunha
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               ))}
-              <Button
-                type="button"
-                onClick={() => setRecord(prev => ({ ...prev, witnesses: [...prev.witnesses, ''] }))}
-                className="w-full mt-2 bg-[#16a085] hover:bg-[#149174] text-white"
-              >
-                <Plus size={16} className="mr-2" />
-                Adicionar Testemunha
-              </Button>
+
+              {(!record.baptisms || record.baptisms.length === 0) && (
+                <div className="text-center py-6 text-gray-500 text-sm bg-white rounded-lg border-2 border-dashed border-gray-300">
+                  Nenhum batismo adicionado ainda
+                </div>
+              )}
             </div>
+
+            {/* Botão para adicionar novo batismo */}
+            <Button
+              type="button"
+              onClick={() => {
+                const newBaptism: BaptismItem = {
+                  id: Date.now().toString(),
+                  personBeingBaptized: '',
+                  personPerformingBaptism: '',
+                  witnesses: ['', ''],
+                };
+                handleBaptismsChange([...(record.baptisms || []), newBaptism]);
+              }}
+              className="w-full bg-white border-2 border-[#1e8b9f] text-[#1e8b9f] hover:bg-[#1e8b9f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center py-4"
+            >
+              <Plus size={20} />
+              Adicionar Batismo
+            </Button>
 
             {/* Instrução pós-batismo */}
             <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
               <p className="text-sm text-gray-700 leading-relaxed">
                 <span className="font-semibold">Após a ordenança ser realizada:</span> Recomendamos que assistam vídeos da Bíblia para manter a reverência, cantem hinos ou compartilhem seus testemunhos. 
-                <span className="italic"> (aguardamos até o irmão(ã) que foi batizado(a) voltar)</span>
+                <span className="italic"> (aguardamos até o(s) irmão(s/ãs) que foi(ram) batizado(a)(s) voltar(em))</span>
               </p>
             </div>
           </div>

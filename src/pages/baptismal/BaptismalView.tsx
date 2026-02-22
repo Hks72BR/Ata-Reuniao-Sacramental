@@ -33,7 +33,7 @@ export default function BaptismalView() {
       try {
         setIsLoading(true);
         console.log('[BaptismalView] Carregando ata com ID:', recordId);
-        const data = await getBaptismalRecordFromCloud(recordId);
+        let data = await getBaptismalRecordFromCloud(recordId);
         console.log('[BaptismalView] Ata carregada:', data);
         
         if (!data) {
@@ -41,6 +41,21 @@ export default function BaptismalView() {
           toast.error('Ata batismal não encontrada');
           setLocation('/404');
           return;
+        }
+        
+        // Migração automática de formato antigo para novo
+        if ((data as any).personBeingBaptized || (data as any).personPerformingBaptism) {
+          // Formato antigo detectado - converter para novo formato
+          const migratedData = {
+            ...data,
+            baptisms: [{
+              id: Date.now().toString(),
+              personBeingBaptized: (data as any).personBeingBaptized || '',
+              personPerformingBaptism: (data as any).personPerformingBaptism || '',
+              witnesses: (data as any).witnesses || ['', ''],
+            }],
+          };
+          data = migratedData as BaptismalRecord;
         }
         
         setRecord(data);
@@ -175,13 +190,37 @@ export default function BaptismalView() {
             </Section>
 
             <Section title="Ordenança Batismal">
-              <Field label="Pessoa Batizada" value={record.personBeingBaptized} />
-              <Field label="Oficiante do Batismo" value={record.personPerformingBaptism} />
               <Field label="Local do Batismo" value={
                 record.baptismLocation === 'baptism-room' ? 'Sala de Batismo' : 'Mesma Sala da Reunião'
               } />
-              <Field label="Primeira Testemunha" value={record.witnesses[0]} />
-              <Field label="Segunda Testemunha" value={record.witnesses[1]} />
+              
+              {record.baptisms && record.baptisms.length > 0 ? (
+                <div className="space-y-6 mt-4">
+                  {record.baptisms.map((baptism, index) => (
+                    <div key={baptism.id || index} className="p-5 bg-gradient-to-br from-cyan-50 to-teal-50 rounded-xl border-2 border-[#16a085]/40 shadow-sm">
+                      <div className="mb-3">
+                        <span className="px-3 py-1 bg-[#16a085] text-white text-sm font-bold rounded-full">
+                          Batismo {index + 1}
+                        </span>
+                      </div>
+                      <Field label="Pessoa Batizada" value={baptism.personBeingBaptized} />
+                      <Field label="Oficiante do Batismo" value={baptism.personPerformingBaptism} />
+                      <div className="mt-3">
+                        <p className="text-sm font-semibold text-[#1e8b9f]/70 font-['Poppins'] mb-2">Testemunhas:</p>
+                        <div className="ml-2 space-y-1">
+                          {baptism.witnesses.map((witness, wIndex) => (
+                            <p key={wIndex} className="text-[#1e8b9f] font-['Poppins']">
+                              {wIndex + 1}. {witness || '—'}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic mt-2">Nenhum batismo registrado</p>
+              )}
             </Section>
 
             {record.ordinances && record.ordinances.length > 0 && (

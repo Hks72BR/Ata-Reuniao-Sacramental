@@ -41,8 +41,26 @@ export default function BaptismalHistory() {
     try {
       setLoading(true);
       console.log('[BaptismalHistory] Carregando atas batismais...');
-      const allRecords = await getAllBaptismalRecordsFromCloud();
+      let allRecords = await getAllBaptismalRecordsFromCloud();
       console.log('[BaptismalHistory] Atas carregadas:', allRecords.length);
+      
+      // Migração automática de registros antigos para novo formato
+      allRecords = allRecords.map(record => {
+        if ((record as any).personBeingBaptized || (record as any).personPerformingBaptism) {
+          // Formato antigo detectado - converter para novo formato
+          return {
+            ...record,
+            baptisms: [{
+              id: Date.now().toString() + Math.random(),
+              personBeingBaptized: (record as any).personBeingBaptized || '',
+              personPerformingBaptism: (record as any).personPerformingBaptism || '',
+              witnesses: (record as any).witnesses || ['', ''],
+            }],
+          } as BaptismalRecord;
+        }
+        return record;
+      });
+      
       setRecords(allRecords);
       setFilteredRecords(allRecords);
       
@@ -209,9 +227,15 @@ export default function BaptismalHistory() {
                           <span className="font-semibold text-[#1e8b9f]">Dirigida por:</span> {record.directedBy}
                         </p>
                       )}
-                      {record.personBeingBaptized && (
+                      {record.baptisms && record.baptisms.length > 0 && (
                         <p>
-                          <span className="font-semibold text-[#1e8b9f]">Batizado(a):</span> {record.personBeingBaptized}
+                          <span className="font-semibold text-[#1e8b9f]">
+                            {record.baptisms.length === 1 ? 'Batizado(a):' : `${record.baptisms.length} Batismos:`}
+                          </span>{' '}
+                          {record.baptisms.length === 1 
+                            ? record.baptisms[0].personBeingBaptized
+                            : record.baptisms.map(b => b.personBeingBaptized).join(', ')
+                          }
                         </p>
                       )}
                       {record.baptismLocation && (

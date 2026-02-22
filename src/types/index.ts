@@ -97,6 +97,13 @@ export interface CallingDesignationItem {
 // TIPOS PARA ATA BATISMAL
 // ============================================
 
+export interface BaptismItem {
+  id: string;
+  personBeingBaptized: string; // Nome completo da pessoa batizada
+  personPerformingBaptism: string; // Quem realiza a ordenança
+  witnesses: string[]; // Testemunhas do batismo (array de nomes)
+}
+
 export interface BaptismalRecord {
   id?: string;
   date: string; // ISO date format
@@ -118,9 +125,7 @@ export interface BaptismalRecord {
   
   // Parte Batismal
   baptismLocation: 'same-room' | 'baptism-room'; // Se está na sacramental ou sala separada
-  personBeingBaptized: string; // Nome completo da pessoa batizada
-  personPerformingBaptism: string; // Quem realiza a ordenança
-  witnesses: string[]; // Testemunhas do batismo (array de nomes)
+  baptisms: BaptismItem[]; // Array de batismos realizados neste serviço
   
   // Ordenanças (Confirmação de Batismo)
   ordinances: OrdinanceItem[]; // Confirmações de batismo e outras ordenanças
@@ -221,9 +226,7 @@ export const BAPTISMAL_RECORD_INITIAL: Partial<BaptismalRecord> = {
   message: '',
   specialPresentation: '',
   baptismLocation: 'same-room',
-  personBeingBaptized: '',
-  personPerformingBaptism: '',
-  witnesses: ['', ''],
+  baptisms: [],
   ordinances: [],
   closingHymn: '',
   closingPrayer: '',
