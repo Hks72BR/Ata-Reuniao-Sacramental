@@ -281,6 +281,7 @@ export interface OrganizationMatters {
   elderes: string; // Quórum de Elderes
   missionaria: string; // Obra Missionária
   primaria: string; // Primária
+  escolaDominical: string; // Escola Dominical
 }
 
 export const WARD_COUNCIL_RECORD_INITIAL: Partial<WardCouncilRecord> = {
@@ -295,6 +296,7 @@ export const WARD_COUNCIL_RECORD_INITIAL: Partial<WardCouncilRecord> = {
     elderes: '',
     missionaria: '',
     primaria: '',
+    escolaDominical: '',
   },
   actionItems: [],
   closingPrayer: '',

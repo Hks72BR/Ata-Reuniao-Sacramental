@@ -378,6 +378,13 @@ export default function WardCouncilHome() {
                 placeholder="Assuntos tratados pela Primária..."
                 rows={3}
               />
+              <TextAreaField
+                label="📚 Escola Dominical"
+                value={record.organizationMatters.escolaDominical}
+                onChange={(e) => handleOrganizationChange('escolaDominical', e.target.value)}
+                placeholder="Assuntos tratados pela Escola Dominical..."
+                rows={3}
+              />
             </div>
           </div>
 

@@ -115,7 +115,8 @@ export default function WardCouncilView() {
     socorro: '💐 Sociedade de Socorro',
     elderes: '📖 Quórum de Elderes',
     missionaria: '🌍 Obra Missionária',
-    primaria: '🎨 Primária'
+    primaria: '🎨 Primária',
+    escolaDominical: '📚 Escola Dominical'
   };
 
   return (
