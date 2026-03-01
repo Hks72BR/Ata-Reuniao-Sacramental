@@ -116,7 +116,8 @@ export default function WardCouncilView() {
     elderes: '📖 Quórum de Elderes',
     missionaria: '🌍 Obra Missionária',
     primaria: '🎨 Primária',
-    escolaDominical: '📚 Escola Dominical'
+    escolaDominical: '📚 Escola Dominical',
+    temploHistoriaFamilia: '⛪ Templo e História da Família'
   };
 
   return (

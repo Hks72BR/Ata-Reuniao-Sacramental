@@ -282,6 +282,7 @@ export interface OrganizationMatters {
   missionaria: string; // Obra Missionária
   primaria: string; // Primária
   escolaDominical: string; // Escola Dominical
+  temploHistoriaFamilia: string; // Templo e História da Família
 }
 
 export const WARD_COUNCIL_RECORD_INITIAL: Partial<WardCouncilRecord> = {
@@ -297,6 +298,7 @@ export const WARD_COUNCIL_RECORD_INITIAL: Partial<WardCouncilRecord> = {
     missionaria: '',
     primaria: '',
     escolaDominical: '',
+    temploHistoriaFamilia: '',
   },
   actionItems: [],
   closingPrayer: '',

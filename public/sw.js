@@ -5,7 +5,7 @@
  */
 
 // Versão baseada em timestamp - atualiza automaticamente a cada build
-const BUILD_TIMESTAMP = '2026-02-22T22:52:10.860Z'; // Será substituído no build
+const BUILD_TIMESTAMP = '2026-03-01T22:27:12.630Z'; // Será substituído no build
 const CACHE_VERSION = `v${new Date(BUILD_TIMESTAMP).getTime()}`;
 const CACHE_NAME = `ata-sacramental-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ata-sacramental-runtime-${CACHE_VERSION}`;

@@ -385,6 +385,13 @@ export default function WardCouncilHome() {
                 placeholder="Assuntos tratados pela Escola Dominical..."
                 rows={3}
               />
+              <TextAreaField
+                label="⛪ Templo e História da Família"
+                value={record.organizationMatters.temploHistoriaFamilia}
+                onChange={(e) => handleOrganizationChange('temploHistoriaFamilia', e.target.value)}
+                placeholder="Assuntos relacionados ao Templo e História da Família..."
+                rows={3}
+              />
             </div>
           </div>
 
