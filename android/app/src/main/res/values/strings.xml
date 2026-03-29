@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ata Sacramental</string>
+    <string name="title_activity_main">Ata Sacramental</string>
+    <string name="package_name">com.hks72br.atasacramental</string>
+    <string name="custom_url_scheme">com.hks72br.atasacramental</string>
+</resources>

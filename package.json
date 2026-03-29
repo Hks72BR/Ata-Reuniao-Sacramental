@@ -4,7 +4,13 @@
   "description": "Sistema Digital Profissional para Gestão de Atas Eclesiásticas - Igreja de Jesus Cristo dos Santos dos Últimos Dias",
   "author": "Sistema de Atas Sacramentais",
   "license": "PROPRIETARY",
-  "keywords": ["ata-sacramental", "igreja-sud", "pwa", "gestão-eclesiastica", "registro-religioso"],
+  "keywords": [
+    "ata-sacramental",
+    "igreja-sud",
+    "pwa",
+    "gestão-eclesiastica",
+    "registro-religioso"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +20,12 @@
     "verify": "node verify-config.mjs"
   },
   "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^10.0.0",
+    "@capacitor-community/sqlite": "^8.0.1",
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/haptics": "^8.0.2",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.2.8",

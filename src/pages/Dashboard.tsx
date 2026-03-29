@@ -8,6 +8,7 @@ import { useLocation } from 'wouter';
 import { FileText, Droplets, Users } from 'lucide-react';
 import { PinAuthModal } from '@/components/PinAuthModal';
 import { AUTH_CONFIG } from '@/lib/auth';
+import { authenticateWithBiometrics } from '@/lib/biometrics';
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -16,20 +17,32 @@ export default function Dashboard() {
   const [showBishopricAuth, setShowBishopricAuth] = useState(false);
   const [showWardCouncilAuth, setShowWardCouncilAuth] = useState(false);
 
-  const handleSacramentalClick = () => {
-    setShowSacramentalAuth(true);
+  const handleSacramentalClick = async () => {
+    const authenticated = await authenticateWithBiometrics();
+    if (authenticated) {
+      setShowSacramentalAuth(true);
+    }
   };
 
-  const handleBaptismalClick = () => {
-    setShowBaptismalAuth(true);
+  const handleBaptismalClick = async () => {
+    const authenticated = await authenticateWithBiometrics();
+    if (authenticated) {
+      setShowBaptismalAuth(true);
+    }
   };
 
-  const handleBishopricClick = () => {
-    setShowBishopricAuth(true);
+  const handleBishopricClick = async () => {
+    const authenticated = await authenticateWithBiometrics();
+    if (authenticated) {
+      setShowBishopricAuth(true);
+    }
   };
 
-  const handleWardCouncilClick = () => {
-    setShowWardCouncilAuth(true);
+  const handleWardCouncilClick = async () => {
+    const authenticated = await authenticateWithBiometrics();
+    if (authenticated) {
+      setShowWardCouncilAuth(true);
+    }
   };
 
   const handleSacramentalSuccess = () => {
