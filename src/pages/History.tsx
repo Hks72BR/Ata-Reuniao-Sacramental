@@ -10,7 +10,8 @@ import { UserIdentificationModal } from '@/components/UserIdentificationModal';
 import { DeletePinModal } from '@/components/DeletePinModal';
 import { getAllRecords, searchRecordsByDate, deleteRecord } from '@/lib/db';
 import { SacramentalRecord } from '@/types';
-import { Eye, Trash2, Search, Calendar, ArrowLeft } from 'lucide-react';
+import { Eye, Trash2, Search, Calendar, ArrowLeft, Send } from 'lucide-react';
+import { InvitationModal } from '@/components/InvitationModal';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
@@ -24,6 +25,9 @@ export default function History() {
   const [showDeletePinModal, setShowDeletePinModal] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToDeleteDate, setRecordToDeleteDate] = useState<string>('');
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string | null>(null);
+  const [showInvitationModal, setShowInvitationModal] = useState(false);
+  const [invitationDate, setInvitationDate] = useState<string>('');
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -89,6 +93,12 @@ export default function History() {
     setRecordToDelete(record.id || null);
     setRecordToDeleteDate(record.date);
     setShowDeletePinModal(true);
+  };
+
+  const handleInviteClick = (name: string, date: string) => {
+    setSelectedSpeaker(name);
+    setInvitationDate(date);
+    setShowInvitationModal(true);
   };
 
   const handleDeletePinSuccess = () => {
@@ -226,11 +236,24 @@ export default function History() {
                         </p>
                       )}
                       {record.firstSpeaker && (
-                        <p>
-                          <span className="font-semibold text-[#1e3a5f]">Oradores:</span> {record.firstSpeaker}
-                          {record.secondSpeaker && `, ${record.secondSpeaker}`}
-                          {record.lastSpeaker && `, ${record.lastSpeaker}`}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <span className="font-semibold text-[#1e3a5f]">Oradores:</span>
+                          {[
+                            { name: record.firstSpeaker, label: '1º' },
+                            { name: record.secondSpeaker, label: '2º' },
+                            { name: record.lastSpeaker, label: 'Último' }
+                          ].filter(s => s.name).map((s, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleInviteClick(s.name, record.date)}
+                              className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-[#d4a574]/10 text-[#1e3a5f] rounded-full text-xs font-medium transition-colors border border-slate-200 hover:border-[#d4a574]/30 group"
+                              title={`Convidar ${s.name}`}
+                            >
+                              <span>{s.label}: {s.name}</span>
+                              <Send size={10} className="text-[#d4a574] opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <div className="mt-3 flex items-center gap-2">
@@ -312,12 +335,25 @@ export default function History() {
       />
 
       {/* Modal de Identificação */}
-      <UserIdentificationModal
+     <UserIdentificationModal
         isOpen={showUserModal}
         onConfirm={handleUserConfirmDelete}
-        onCancel={() => {
-          setShowUserModal(false);
-          setRecordToDelete(null);
+        onCancel={() => setShowUserModal(false)}
+        action="excluir"
+      />
+
+      {selectedSpeaker && (
+        <InvitationModal
+          isOpen={showInvitationModal}
+          onClose={() => {
+            setShowInvitationModal(false);
+            setSelectedSpeaker(null);
+          }}
+          speakerName={selectedSpeaker}
+          defaultDate={invitationDate}
+        />
+      )}
+    </div>l);
           setRecordToDeleteDate('');
         }}
         action="excluir"

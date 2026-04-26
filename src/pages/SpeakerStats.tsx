@@ -10,7 +10,8 @@ import { getAllRecords } from '@/lib/db';
 import { getMembersListFromCloud, saveMembersListToCloud } from '@/lib/firestore';
 import { SacramentalRecord } from '@/types';
 import { MEMBERS_LIST_SORTED } from '@/data/members';
-import { ArrowLeft, TrendingUp, Users, UserPlus, UserCheck, UserX } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Users, UserPlus, UserCheck, UserX, Send } from 'lucide-react';
+import { InvitationModal } from '@/components/InvitationModal';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
 
@@ -25,6 +26,8 @@ export default function SpeakerStats() {
   const [totalMeetings, setTotalMeetings] = useState(0);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [allMembers, setAllMembers] = useState<string[]>([]);
+  const [selectedSpeaker, setSelectedSpeaker] = useState<string | null>(null);
+  const [showInvitationModal, setShowInvitationModal] = useState(false);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -51,6 +54,11 @@ export default function SpeakerStats() {
       setAllMembers(MEMBERS_LIST_SORTED);
       toast.info('Usando lista de membros local');
     }
+  };
+
+  const handleInviteClick = (name: string) => {
+    setSelectedSpeaker(name);
+    setShowInvitationModal(true);
   };
 
   const handleSaveMembersList = async (members: string[]) => {
@@ -228,11 +236,20 @@ export default function SpeakerStats() {
                       </span>
                     </div>
 
-                    {/* Contador */}
-                    <div className="w-32 text-right">
-                      <span className="inline-flex items-center justify-center min-w-[4rem] px-5 py-3 rounded-xl bg-gradient-to-br from-[#d4a574] to-[#c49564] text-white font-bold text-xl shadow-md">
-                        {speaker.count}
-                      </span>
+                    {/* Ações */}
+                    <div className="flex items-center gap-4">
+                      <Button
+                        onClick={() => handleInviteClick(speaker.name)}
+                        className="bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white p-2 rounded-lg transition-all"
+                        title="Enviar Convite"
+                      >
+                        <Send size={18} />
+                      </Button>
+                      <div className="w-24 text-right">
+                        <span className="inline-flex items-center justify-center min-w-[3rem] px-4 py-2 rounded-xl bg-gradient-to-br from-[#d4a574] to-[#c49564] text-white font-bold text-lg shadow-md">
+                          {speaker.count}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -258,11 +275,18 @@ export default function SpeakerStats() {
                     {notSpokenYet.map((member) => (
                       <div
                         key={member}
-                        className="p-3 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors"
+                        className="p-3 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors flex items-center justify-between group"
                       >
                         <span className="text-[#1e3a5f] font-medium">
                           {member}
                         </span>
+                        <button
+                          onClick={() => handleInviteClick(member)}
+                          className="text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-orange-200 rounded"
+                          title="Convidar para discursar"
+                        >
+                          <Send size={16} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -280,6 +304,17 @@ export default function SpeakerStats() {
         onSave={handleSaveMembersList}
         currentMembers={allMembers}
       />
+
+      {selectedSpeaker && (
+        <InvitationModal
+          isOpen={showInvitationModal}
+          onClose={() => {
+            setShowInvitationModal(false);
+            setSelectedSpeaker(null);
+          }}
+          speakerName={selectedSpeaker}
+        />
+      )}
     </div>
   );
 }
