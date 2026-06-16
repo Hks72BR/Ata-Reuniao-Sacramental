@@ -9,6 +9,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 // Configuração do Firebase a partir de variáveis de ambiente
 const firebaseConfig = {
@@ -23,8 +24,9 @@ const firebaseConfig = {
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 
-// Inicializar Firestore
+// Inicializar Firestore e Auth
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 // Nome da coleção
 export const COLLECTION_NAME = 'atas-sacramentais';

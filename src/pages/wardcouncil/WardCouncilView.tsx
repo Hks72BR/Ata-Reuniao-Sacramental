@@ -38,9 +38,7 @@ export default function WardCouncilView() {
 
   const handleEdit = () => {
     if (!record) return;
-    localStorage.setItem('wardCouncilRecord', JSON.stringify(record));
-    setLocation('/wardcouncil');
-    toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-wardcouncil' });
+    setLocation(`/wardcouncil/edit/${record.id}`);
   };
 
   const handleSave = async () => {

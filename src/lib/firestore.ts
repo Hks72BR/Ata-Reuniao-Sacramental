@@ -1,6 +1,10 @@
 /**
  * Funções do Firestore - Sincronização na Nuvem
  * Mantém compatibilidade com IndexedDB local
+ * 
+ * ✅ Multi-Tenant: Dados isolados por wardId
+ * ✅ Cache: Reduz leituras do Firestore (TTL 1 hora)
+ * ✅ Paginação: Limita quantidade de documentos carregados
  */
 
 import {
@@ -14,11 +18,30 @@ import {
   query,
   orderBy,
   where,
+  limit,
   onSnapshot,
   setDoc,
 } from 'firebase/firestore';
-import { db, COLLECTION_NAME } from './firebase';
+import { db, auth, COLLECTION_NAME } from './firebase';
 import { SacramentalRecord } from '@/types';
+
+const CACHE_TTL = 3600000; // 1 hora em milissegundos
+const PAGE_SIZE = 50; // Carregar 50 atas por vez
+
+/**
+ * Obter wardId do usuário autenticado
+ */
+function getCurrentWardId(): string | null {
+  const user = auth.currentUser;
+  if (!user?.email) {
+    console.warn('[Firestore] Usuário não autenticado');
+    return null;
+  }
+  // Extrair ala-jardim de ala-jardim@igreja.com
+  const wardId = user.email.split('@')[0];
+  console.log('[Firestore] WardId atual:', wardId);
+  return wardId;
+}
 
 /**
  * Converter timestamp do Firebase para ISO string
@@ -35,18 +58,26 @@ function convertTimestamps(data: any): any {
 }
 
 /**
- * Salvar ata no Firestore
+ * Salvar ata no Firestore (com wardId)
  */
 export async function saveRecordToCloud(record: SacramentalRecord): Promise<string> {
+  const wardId = getCurrentWardId();
+  if (!wardId) {
+    throw new Error('Usuário não autenticado. Faça login novamente.');
+  }
+
   try {
     // Remover campos undefined e preparar dados
     const cleanRecord = JSON.parse(JSON.stringify(record)); // Remove undefined
     
     const recordData = {
       ...cleanRecord,
+      wardId, // ✅ Adicionar wardId para isolamento
       createdAt: cleanRecord.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    let savedId: string;
 
     if (record.id) {
       // Verificar se documento existe antes de atualizar
@@ -57,17 +88,22 @@ export async function saveRecordToCloud(record: SacramentalRecord): Promise<stri
         // Atualizar existente
         const { id, ...dataToUpdate } = recordData; // Remove id do update
         await updateDoc(docRef, dataToUpdate);
-        return record.id;
+        savedId = record.id;
       } else {
         // Documento não existe, criar novo com o ID
         await setDoc(docRef, recordData);
-        return record.id;
+        savedId = record.id;
       }
     } else {
       // Criar novo sem ID específico
       const docRef = await addDoc(collection(db, COLLECTION_NAME), recordData);
-      return docRef.id;
+      savedId = docRef.id;
     }
+
+    // ✅ Limpar cache após salvar (forçar reload)
+    clearRecordsCache();
+    
+    return savedId;
   } catch (error) {
     console.error('Erro ao salvar no Firestore:', error);
     throw error;
@@ -75,25 +111,55 @@ export async function saveRecordToCloud(record: SacramentalRecord): Promise<stri
 }
 
 /**
- * Buscar todas as atas do Firestore
+ * Buscar todas as atas do Firestore (com cache e filtro por wardId)
  */
 export async function getAllRecordsFromCloud(): Promise<SacramentalRecord[]> {
+  const wardId = getCurrentWardId();
+  if (!wardId) {
+    throw new Error('Usuário não autenticado. Faça login novamente.');
+  }
+
   try {
+    // ✅ Verificar cache primeiro
+    const cacheKey = `records_cache_${wardId}`;
+    const cacheTimeKey = `cache_time_${wardId}`;
+    const cached = localStorage.getItem(cacheKey);
+    const cacheTime = localStorage.getItem(cacheTimeKey);
+    
+    if (cached && cacheTime) {
+      const age = Date.now() - Number(cacheTime);
+      if (age < CACHE_TTL) {
+        console.log(`[Firestore] ✅ Usando cache (${Math.round(age / 1000)}s atrás)`);
+        return JSON.parse(cached);
+      } else {
+        console.log('[Firestore] Cache expirado, buscando do servidor...');
+      }
+    }
+
     console.log('[Firestore] Iniciando busca de atas...');
+    
+    // ✅ Query com filtro por wardId + paginação
     const q = query(
       collection(db, COLLECTION_NAME),
-      orderBy('date', 'desc')
+      where('wardId', '==', wardId), // Isolamento multi-tenant
+      orderBy('date', 'desc'),
+      limit(PAGE_SIZE) // Paginação
     );
+    
     const querySnapshot = await getDocs(q);
-    console.log('[Firestore] Documentos encontrados:', querySnapshot.size);
+    console.log('[Firestore] Documentos encontrados:', querySnapshot.size, `(wardId: ${wardId})`);
     
     const records = querySnapshot.docs.map(doc => {
-      console.log('[Firestore] Doc ID:', doc.id, 'Data:', doc.data());
       return {
         id: doc.id,
         ...convertTimestamps(doc.data())
       } as SacramentalRecord;
     });
+    
+    // ✅ Salvar no cache
+    localStorage.setItem(cacheKey, JSON.stringify(records));
+    localStorage.setItem(cacheTimeKey, Date.now().toString());
+    console.log('[Firestore] Cache atualizado');
     
     return records;
   } catch (error) {
@@ -134,9 +200,25 @@ export async function deleteRecordFromCloud(id: string): Promise<void> {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(docRef);
+    // ✅ Limpar cache após deletar
+    clearRecordsCache();
   } catch (error) {
     console.error('Erro ao deletar do Firestore:', error);
     throw error;
+  }
+}
+
+/**
+ * Limpar cache de registros
+ */
+export function clearRecordsCache(): void {
+  const wardId = getCurrentWardId();
+  if (wardId) {
+    const cacheKey = `records_cache_${wardId}`;
+    const cacheTimeKey = `cache_time_${wardId}`;
+    localStorage.removeItem(cacheKey);
+    localStorage.removeItem(cacheTimeKey);
+    console.log('[Firestore] Cache limpo');
   }
 }
 

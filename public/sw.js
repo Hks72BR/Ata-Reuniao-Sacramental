@@ -5,7 +5,7 @@
  */
 
 // Versão baseada em timestamp - atualiza automaticamente a cada build
-const BUILD_TIMESTAMP = '2026-03-29T02:10:44.203Z'; // Será substituído no build
+const BUILD_TIMESTAMP = '2026-03-30T13:31:29.584Z'; // Será substituído no build
 const CACHE_VERSION = `v${new Date(BUILD_TIMESTAMP).getTime()}`;
 const CACHE_NAME = `ata-sacramental-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ata-sacramental-runtime-${CACHE_VERSION}`;
@@ -226,4 +226,23 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+// Clique em notificação - abrir o app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Se já tem uma aba aberta, focar nela
+      for (const client of clientList) {
+        if ('focus' in client) {
+          return client.focus();
+        }
+      }
+      // Se não, abrir nova aba
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
+    })
+  );
 });

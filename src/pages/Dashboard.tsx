@@ -1,21 +1,36 @@
 /**
  * Dashboard - Menu de Seleção de Tipo de Ata
  * Permite escolher entre Ata Sacramental ou Ata Batismal
+ * Multi-Tenant: Adaptado para mostrar nome da ala e logout
  */
 
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { FileText, Droplets, Users } from 'lucide-react';
+import { FileText, Droplets, Users, LogOut } from 'lucide-react';
 import { PinAuthModal } from '@/components/PinAuthModal';
+import { PendingItemsBanner } from '@/components/PendingItemsBanner';
 import { AUTH_CONFIG } from '@/lib/auth';
 import { authenticateWithBiometrics } from '@/lib/biometrics';
+import { useWard } from '@/contexts/WardContext';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
+  const { wardName, signOut } = useWard();
   const [showSacramentalAuth, setShowSacramentalAuth] = useState(false);
   const [showBaptismalAuth, setShowBaptismalAuth] = useState(false);
   const [showBishopricAuth, setShowBishopricAuth] = useState(false);
   const [showWardCouncilAuth, setShowWardCouncilAuth] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logout realizado com sucesso');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      toast.error('Erro ao fazer logout');
+    }
+  };
 
   const handleSacramentalClick = async () => {
     const authenticated = await authenticateWithBiometrics();
@@ -67,6 +82,28 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-gray-900">
+      {/* Header com nome da ala e botão de logout */}
+      <div className="absolute top-0 right-0 left-0 z-50">
+        <div className="container max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 bg-slate-800/50 backdrop-blur-md px-4 py-2 rounded-full border border-amber-700/30">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-white/90 text-sm font-['Poppins'] font-medium">
+                {wardName || 'Carregando...'}
+              </span>
+            </div>
+            
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 backdrop-blur-md hover:bg-slate-700/50 text-white rounded-full transition-all duration-300 border border-slate-700/50 hover:border-red-500/50 shadow-lg"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium">Sair</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section Moderno */}
       <div className="relative w-full overflow-hidden">
         {/* Background animado com padrões geométricos */}
@@ -111,6 +148,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Banner de Itens Pendentes */}
+      <PendingItemsBanner />
 
       {/* Cards de Seleção - Estilo Moderno Glassmorphism */}
       <div className="container max-w-6xl mx-auto px-4 pb-24">

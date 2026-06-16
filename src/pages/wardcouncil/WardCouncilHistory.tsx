@@ -1,20 +1,22 @@
 /**
  * Página de Histórico - Consulta de Atas de Conselho de Ala Anteriores
+ * PIN 2661 obrigatório para criar ou excluir atas
  */
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/FormField';
-import { DeletePinModal } from '@/components/DeletePinModal';
+import { WardCouncilAdminPinModal } from '@/components/WardCouncilAdminPinModal';
 import { WardCouncilRecord } from '@/types';
-import { Eye, Trash2, Search, FileText, ArrowLeft, Edit, CheckCircle2 } from 'lucide-react';
+import { Eye, Trash2, Search, FileText, ArrowLeft, Edit, CheckCircle2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
 import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
 import { 
   getAllWardCouncilRecordsFromCloud, 
-  deleteWardCouncilRecordFromCloud
+  deleteWardCouncilRecordFromCloud,
+  createBlankWardCouncilRecord,
 } from '@/lib/wardCouncilFirestore';
 
 export default function WardCouncilHistory() {
@@ -22,7 +24,8 @@ export default function WardCouncilHistory() {
   const [filteredRecords, setFilteredRecords] = useState<WardCouncilRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [showDeletePinModal, setShowDeletePinModal] = useState(false);
+  const [showAdminPinModal, setShowAdminPinModal] = useState(false);
+  const [adminPinAction, setAdminPinAction] = useState<'create' | 'delete'>('create');
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [recordToDeleteDate, setRecordToDeleteDate] = useState<string>('');
   const [, setLocation] = useLocation();
@@ -86,35 +89,50 @@ export default function WardCouncilHistory() {
   };
 
   const handleEditRecord = (record: WardCouncilRecord) => {
-    // Salvar ata no localStorage para edição
-    localStorage.setItem('wardCouncilRecord', JSON.stringify(record));
-    setLocation('/wardcouncil');
-    toast.info('📝 Ata carregada para edição');
+    // Redirecionar para a página de edição colaborativa
+    setLocation(`/wardcouncil/edit/${record.id}`);
   };
 
   const handleDeleteRecord = (record: WardCouncilRecord) => {
     setRecordToDelete(record.id!);
     setRecordToDeleteDate(formatDate(record.date));
-    setShowDeletePinModal(true);
+    setAdminPinAction('delete');
+    setShowAdminPinModal(true);
   };
 
-  const handleDeletePinSuccess = async () => {
-    setShowDeletePinModal(false);
-    
-    if (!recordToDelete) return;
+  const handleAdminPinSuccess = async () => {
+    setShowAdminPinModal(false);
 
-    try {
-      await deleteWardCouncilRecordFromCloud(recordToDelete);
-      toast.success('✅ Ata de conselho deletada com sucesso', {
-        duration: 2000,
-      });
-      setRecordToDelete(null);
-      setRecordToDeleteDate('');
-      await loadRecords();
-    } catch (error) {
-      toast.error('❌ Erro ao deletar ata de conselho');
-      console.error(error);
+    if (adminPinAction === 'create') {
+      try {
+        toast.info('Criando nova ata...');
+        const newId = await createBlankWardCouncilRecord();
+        toast.success('✅ Nova ata criada!');
+        setLocation(`/wardcouncil/edit/${newId}`);
+      } catch (error) {
+        toast.error('❌ Erro ao criar ata');
+        console.error(error);
+      }
+      return;
     }
+
+    if (adminPinAction === 'delete' && recordToDelete) {
+      try {
+        await deleteWardCouncilRecordFromCloud(recordToDelete);
+        toast.success('✅ Ata de conselho deletada com sucesso', { duration: 2000 });
+        setRecordToDelete(null);
+        setRecordToDeleteDate('');
+        await loadRecords();
+      } catch (error) {
+        toast.error('❌ Erro ao deletar ata de conselho');
+        console.error(error);
+      }
+    }
+  };
+
+  const handleCreateNewAta = () => {
+    setAdminPinAction('create');
+    setShowAdminPinModal(true);
   };
 
   return (
@@ -129,6 +147,13 @@ export default function WardCouncilHistory() {
             >
               <ArrowLeft size={18} />
               Menu
+            </Button>
+            <Button
+              onClick={handleCreateNewAta}
+              className="bg-white border-2 border-amber-500 text-teal-800 hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
+            >
+              <Plus size={18} />
+              Nova Ata (PIN)
             </Button>
           </div>
           
@@ -298,10 +323,10 @@ export default function WardCouncilHistory() {
                 <FileText size={64} className="mx-auto text-teal-300 mb-4" />
                 <p className="text-teal-700 text-lg">Nenhuma ata de conselho encontrada</p>
                 <Button
-                  onClick={() => setLocation('/wardcouncil')}
+                  onClick={handleCreateNewAta}
                   className="mt-4 bg-teal-600 hover:bg-teal-700 text-white"
                 >
-                  Criar primeira ata
+                  Criar primeira ata (PIN)
                 </Button>
               </div>
             )}
@@ -309,15 +334,16 @@ export default function WardCouncilHistory() {
         )}
       </div>
 
-      {/* Delete PIN Modal */}
-      <DeletePinModal
-        isOpen={showDeletePinModal}
+      {/* Admin PIN Modal - Criar/Excluir */}
+      <WardCouncilAdminPinModal
+        isOpen={showAdminPinModal}
         onClose={() => {
-          setShowDeletePinModal(false);
+          setShowAdminPinModal(false);
           setRecordToDelete(null);
           setRecordToDeleteDate('');
         }}
-        onSuccess={handleDeletePinSuccess}
+        onSuccess={handleAdminPinSuccess}
+        action={adminPinAction}
         recordDate={recordToDeleteDate}
       />
     </div>

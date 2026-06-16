@@ -272,7 +272,32 @@ export interface WardCouncilRecord {
   createdBy?: string;
   lastEditedBy?: string;
   lastEditedAt?: string;
+  
+  // Editores ativos (presença em tempo real)
+  activeEditors?: { [sessionId: string]: WardCouncilPresence };
 }
+
+export interface WardCouncilPresence {
+  sessionId: string;
+  userName: string;
+  organization: string;
+  currentField: string | null;
+  color: string;
+  lastUpdate: string;
+}
+
+export const WARD_COUNCIL_ORGANIZATIONS = [
+  { key: 'rapazes', label: '👔 Rapazes', color: '#3B82F6' },
+  { key: 'mocas', label: '🌸 Moças', color: '#EC4899' },
+  { key: 'socorro', label: '💐 Sociedade de Socorro', color: '#8B5CF6' },
+  { key: 'elderes', label: '📖 Quórum de Élderes', color: '#10B981' },
+  { key: 'missionaria', label: '🌍 Obra Missionária', color: '#F97316' },
+  { key: 'primaria', label: '🎨 Primária', color: '#EAB308' },
+  { key: 'escolaDominical', label: '📚 Escola Dominical', color: '#6366F1' },
+  { key: 'temploHistoriaFamilia', label: '⛪ Templo e História da Família', color: '#14B8A6' },
+  { key: 'bispado', label: '🏛️ Bispado', color: '#DC2626' },
+  { key: 'secretario', label: '📋 Secretário', color: '#78716C' },
+] as const;
 
 export interface OrganizationMatters {
   rapazes: string; // Assuntos dos Rapazes

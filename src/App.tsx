@@ -1,14 +1,17 @@
 /**
  * Aplicativo de Atas - Sacramental e Batismal
  * Design: Minimalismo Espiritual Contemporâneo
+ * Multi-Tenant: Isolamento por ala via Firebase Auth
  */
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { WardProvider, useWard } from "./contexts/WardContext";
+import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import History from "./pages/History";
@@ -25,6 +28,8 @@ import BishopricInterviewsHistory from "./pages/bishopric/BishopricInterviewsHis
 import WardCouncilHome from "./pages/wardcouncil/WardCouncilHome";
 import WardCouncilHistory from "./pages/wardcouncil/WardCouncilHistory";
 import WardCouncilView from "./pages/wardcouncil/WardCouncilView";
+import WardCouncilEdit from "./pages/wardcouncil/WardCouncilEdit";
+import { Loader2 } from "lucide-react";
 
 function Router() {
   return (
@@ -43,6 +48,7 @@ function Router() {
       <Route path={"/bishopric/interviews"} component={BishopricInterviews} />
       <Route path={"/bishopric/interviews/history"} component={BishopricInterviewsHistory} />
       <Route path={"/wardcouncil"} component={WardCouncilHome} />
+      <Route path={"/wardcouncil/edit/:id"} component={WardCouncilEdit} />
       <Route path={"/wardcouncil/history"} component={WardCouncilHistory} />
       <Route path={"/wardcouncil/view/:id"} component={WardCouncilView} />
       <Route path={"/404"} component={NotFound} />
@@ -57,14 +63,24 @@ function Router() {
 // - Poppins for body text (clean readability)
 // - Reverent spacing and minimalist aesthetic
 
+/**
+ * AppContent - Renderiza rotas diretamente (autenticação feita por PIN individual em cada ata)
+ */
+function AppContent() {
+  // Renderizar rotas normalmente - cada seção tem seu próprio PIN
+  return <Router />;
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <WardProvider>
+          <TooltipProvider>
+            <Toaster />
+            <AppContent />
+          </TooltipProvider>
+        </WardProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

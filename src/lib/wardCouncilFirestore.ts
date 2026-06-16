@@ -1,11 +1,12 @@
 /**
  * Funções do Firestore - Atas de Conselho de Ala
- * Sincronização na Nuvem
+ * Sincronização na Nuvem + Edição Colaborativa em Tempo Real
  */
 
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDocs,
   getDoc,
@@ -13,9 +14,12 @@ import {
   orderBy,
   where,
   setDoc,
+  updateDoc,
+  onSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { WardCouncilRecord } from '@/types';
+import { WardCouncilRecord, WardCouncilPresence } from '@/types';
 
 const COLLECTION_NAME = 'atas-conselho-ala';
 
@@ -156,6 +160,151 @@ export async function getWardCouncilRecordsByStatus(status: 'draft' | 'completed
     return records;
   } catch (error) {
     console.error('[WardCouncilFirestore] Erro ao buscar atas por status:', error);
+    throw error;
+  }
+}
+
+// ============================================
+// FUNÇÕES DE EDIÇÃO COLABORATIVA EM TEMPO REAL
+// ============================================
+
+/**
+ * Inscrever para atualizações em tempo real de uma ata
+ */
+export function subscribeToWardCouncilRecord(
+  id: string,
+  callback: (record: WardCouncilRecord | null) => void
+): Unsubscribe {
+  console.log('[WardCouncilFirestore] Inscrevendo para atualizações em tempo real:', id);
+  const docRef = doc(db, COLLECTION_NAME, id);
+  
+  return onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = {
+        id: docSnap.id,
+        ...convertTimestamps(docSnap.data())
+      } as WardCouncilRecord;
+      callback(data);
+    } else {
+      callback(null);
+    }
+  }, (error) => {
+    console.error('[WardCouncilFirestore] Erro no listener em tempo real:', error);
+  });
+}
+
+/**
+ * Atualizar um campo específico da ata em tempo real
+ */
+export async function updateWardCouncilField(
+  id: string,
+  fieldPath: string,
+  value: any,
+  editorName?: string
+): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const updateData: any = {
+      [fieldPath]: value,
+      updatedAt: new Date().toISOString(),
+    };
+    if (editorName) {
+      updateData.lastEditedBy = editorName;
+      updateData.lastEditedAt = new Date().toISOString();
+    }
+    await updateDoc(docRef, updateData);
+  } catch (error) {
+    console.error('[WardCouncilFirestore] Erro ao atualizar campo:', fieldPath, error);
+    throw error;
+  }
+}
+
+/**
+ * Atualizar campo de organização específico
+ */
+export async function updateOrganizationField(
+  id: string,
+  orgKey: string,
+  value: string,
+  editorName?: string
+): Promise<void> {
+  return updateWardCouncilField(id, `organizationMatters.${orgKey}`, value, editorName);
+}
+
+/**
+ * Atualizar presença do editor (qual campo está editando)
+ */
+export async function updateEditorPresence(
+  ataId: string,
+  sessionId: string,
+  presence: WardCouncilPresence
+): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, ataId);
+    await updateDoc(docRef, {
+      [`activeEditors.${sessionId}`]: {
+        ...presence,
+        lastUpdate: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error('[WardCouncilFirestore] Erro ao atualizar presença:', error);
+  }
+}
+
+/**
+ * Remover presença do editor (quando sai da página)
+ */
+export async function removeEditorPresence(
+  ataId: string,
+  sessionId: string
+): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, ataId);
+    await updateDoc(docRef, {
+      [`activeEditors.${sessionId}`]: deleteField(),
+    });
+    console.log('[WardCouncilFirestore] Presença removida:', sessionId);
+  } catch (error) {
+    console.error('[WardCouncilFirestore] Erro ao remover presença:', error);
+  }
+}
+
+/**
+ * Criar nova ata em branco no Firestore e retornar o ID
+ */
+export async function createBlankWardCouncilRecord(): Promise<string> {
+  try {
+    const newId = `ata-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const docRef = doc(db, COLLECTION_NAME, newId);
+    const blankRecord: WardCouncilRecord = {
+      id: newId,
+      date: new Date().toISOString().split('T')[0],
+      presidedBy: '',
+      directedBy: '',
+      openingPrayer: '',
+      organizationMatters: {
+        rapazes: '',
+        mocas: '',
+        socorro: '',
+        elderes: '',
+        missionaria: '',
+        primaria: '',
+        escolaDominical: '',
+        temploHistoriaFamilia: '',
+      },
+      actionItems: [],
+      closingPrayer: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'draft',
+      activeEditors: {},
+    };
+    await setDoc(docRef, blankRecord);
+    console.log('[WardCouncilFirestore] Nova ata em branco criada:', newId);
+    return newId;
+  } catch (error) {
+    console.error('[WardCouncilFirestore] Erro ao criar ata em branco:', error);
     throw error;
   }
 }
