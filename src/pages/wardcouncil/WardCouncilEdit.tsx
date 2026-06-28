@@ -301,7 +301,7 @@ export default function WardCouncilEdit() {
         lastEditedAt: new Date().toISOString(),
       };
       // Remove activeEditors antes de salvar para não poluir o registro final
-      const { activeEditors, ...cleanRecord } = recordToSave;
+      const { activeEditors, ...cleanRecord } = recordToSave as any;
       await saveWardCouncilRecordToCloud(cleanRecord as WardCouncilRecord);
       
       alert('✅ ATA SALVA COM SUCESSO');
@@ -331,12 +331,12 @@ export default function WardCouncilEdit() {
 
   // Helper: Obter editores ativos de outros usuários (excluindo o atual)
   const getOtherEditors = (): WardCouncilPresence[] => {
-    if (!record?.activeEditors) return [];
-    return Object.values(record.activeEditors).filter(
-      (e) => e.sessionId !== sessionId && 
+    if (!(record as any)?.activeEditors) return [];
+    return Object.values((record as any).activeEditors).filter(
+      (e: any) => e.sessionId !== sessionId && 
         // Considerar como ativo se atualizou nos últimos 30 segundos
         new Date().getTime() - new Date(e.lastUpdate).getTime() < 30000
-    );
+    ) as WardCouncilPresence[];
   };
 
   // Helper: Verificar quem está editando um campo específico

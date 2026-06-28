@@ -9,21 +9,19 @@ import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { ErrorModal } from '@/components/ErrorModal';
 import { WardCouncilWelcomeModal } from '@/components/WardCouncilWelcomeModal';
-import { WardCouncilAdminPinModal } from '@/components/WardCouncilAdminPinModal';
 import { WardCouncilRecord, ActionItem, WARD_COUNCIL_RECORD_INITIAL } from '@/types';
 import { Download, Save, Plus, History, X, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
 import { isAuthenticated, logout, AUTH_CONFIG } from '@/lib/auth';
-import { saveWardCouncilRecordToCloud, createBlankWardCouncilRecord } from '@/lib/wardCouncilFirestore';
+import { saveWardCouncilRecordToCloud } from '@/lib/wardCouncilFirestore';
 
 export default function WardCouncilHome() {
   const [record, setRecord] = useState<WardCouncilRecord>(WARD_COUNCIL_RECORD_INITIAL as WardCouncilRecord);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [showAdminPinModal, setShowAdminPinModal] = useState(false);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
 
@@ -173,19 +171,10 @@ export default function WardCouncilHome() {
   };
 
   const handleNewRecord = () => {
-    setShowAdminPinModal(true);
-  };
-
-  const handleAdminPinSuccess = async () => {
-    setShowAdminPinModal(false);
-    try {
-      toast.info('Criando nova ata...');
-      const newId = await createBlankWardCouncilRecord();
-      toast.success('✅ Nova ata criada!');
-      setLocation(`/wardcouncil/edit/${newId}`);
-    } catch (error) {
-      toast.error('❌ Erro ao criar ata');
-      console.error(error);
+    if (window.confirm('Deseja criar uma nova ata? As alterações não salvas serão perdidas.')) {
+      setRecord(WARD_COUNCIL_RECORD_INITIAL as WardCouncilRecord);
+      localStorage.removeItem('wardCouncilRecord');
+      toast.success('Nova ata criada', { className: 'toast-success-wardcouncil' });
     }
   };
 
@@ -519,14 +508,6 @@ export default function WardCouncilHome() {
       <WardCouncilWelcomeModal
         isOpen={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
-      />
-
-      {/* Admin PIN Modal - Nova Ata */}
-      <WardCouncilAdminPinModal
-        isOpen={showAdminPinModal}
-        onClose={() => setShowAdminPinModal(false)}
-        onSuccess={handleAdminPinSuccess}
-        action="create"
       />
     </div>
   );

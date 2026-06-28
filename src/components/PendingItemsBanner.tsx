@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Bell, BellRing, ChevronDown, ChevronUp, X, ExternalLink } from 'lucide-react';
+import { AlertTriangle, Bell, BellRing, ChevronDown, ChevronUp, X } from 'lucide-react';
 import {
   checkAllPendingItems,
   sendPendingNotification,
@@ -68,12 +68,6 @@ export function PendingItemsBanner() {
     wardcouncil: '👥',
     bishopric: '🏛️',
     interviews: '📋',
-  };
-
-  const sourceColors: Record<string, string> = {
-    wardcouncil: 'from-purple-600 to-indigo-600',
-    bishopric: 'from-blue-600 to-indigo-600',
-    interviews: 'from-teal-600 to-cyan-600',
   };
 
   // Agrupar por fonte

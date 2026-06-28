@@ -168,10 +168,9 @@ export async function sendPendingNotification(report: PendingItemsReport): Promi
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         tag: 'pending-items',
-        renotify: true,
         vibrate: [200, 100, 200],
         data: { url: '/' },
-      });
+      } as NotificationOptions & { vibrate?: number[]; data?: any });
     } else {
       // Fallback: notificação simples
       new Notification('📋 Itens de Ação Pendentes!', {

@@ -3,7 +3,7 @@
  * Gerencia autenticação e isolamento de dados por ala
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   getAuth, 
   signInWithEmailAndPassword, 

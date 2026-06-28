@@ -7,11 +7,10 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch } from "wouter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { WardProvider, useWard } from "./contexts/WardContext";
-import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import History from "./pages/History";
@@ -67,8 +66,7 @@ function Router() {
  * AppContent - Verifica autenticação antes de renderizar rotas
  */
 function AppContent() {
-  const { isAuthenticated, isLoading } = useWard();
-  const [location] = useLocation();
+  const { isLoading } = useWard();
 
   // Loading de autenticação
   if (isLoading) {
