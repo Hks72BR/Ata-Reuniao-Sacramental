@@ -28,7 +28,7 @@ import BishopricInterviewsHistory from "./pages/bishopric/BishopricInterviewsHis
 import WardCouncilHome from "./pages/wardcouncil/WardCouncilHome";
 import WardCouncilHistory from "./pages/wardcouncil/WardCouncilHistory";
 import WardCouncilView from "./pages/wardcouncil/WardCouncilView";
-import WardCouncilEdit from "./pages/wardcouncil/WardCouncilEdit";
+import SpeakerInvitation from "./pages/SpeakerInvitation";
 import { Loader2 } from "lucide-react";
 
 function Router() {
@@ -38,6 +38,7 @@ function Router() {
       <Route path={"/sacramental"} component={Home} />
       <Route path={"/sacramental/history"} component={History} />
       <Route path={"/sacramental/stats"} component={SpeakerStats} />
+      <Route path={"/sacramental/convite"} component={SpeakerInvitation} />
       <Route path={"/sacramental/view/:id"} component={View} />
       <Route path={"/baptismal"} component={BaptismalHome} />
       <Route path={"/baptismal/history"} component={BaptismalHistory} />
@@ -48,7 +49,6 @@ function Router() {
       <Route path={"/bishopric/interviews"} component={BishopricInterviews} />
       <Route path={"/bishopric/interviews/history"} component={BishopricInterviewsHistory} />
       <Route path={"/wardcouncil"} component={WardCouncilHome} />
-      <Route path={"/wardcouncil/edit/:id"} component={WardCouncilEdit} />
       <Route path={"/wardcouncil/history"} component={WardCouncilHistory} />
       <Route path={"/wardcouncil/view/:id"} component={WardCouncilView} />
       <Route path={"/404"} component={NotFound} />
@@ -64,10 +64,25 @@ function Router() {
 // - Reverent spacing and minimalist aesthetic
 
 /**
- * AppContent - Renderiza rotas diretamente (autenticação feita por PIN individual em cada ata)
+ * AppContent - Verifica autenticação antes de renderizar rotas
  */
 function AppContent() {
-  // Renderizar rotas normalmente - cada seção tem seu próprio PIN
+  const { isAuthenticated, isLoading } = useWard();
+  const [location] = useLocation();
+
+  // Loading de autenticação
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Renderizar rotas normalmente (login desativado)
   return <Router />;
 }
 

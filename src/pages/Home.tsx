@@ -13,7 +13,7 @@ import { CallingDesignationsSection } from '@/components/CallingDesignationsSect
 import { ErrorModal } from '@/components/ErrorModal';
 import { UserIdentificationModal } from '@/components/UserIdentificationModal';
 import { SacramentalRecord, SupportAndReleaseItem, OrdinanceItem, CallingDesignationItem, SACRAMENTAL_RECORD_INITIAL } from '@/types';
-import { Download, Save, Plus, History, TrendingUp } from 'lucide-react';
+import { Download, Save, Plus, History, TrendingUp, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { saveRecord, initDB } from '@/lib/db';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
@@ -382,6 +382,13 @@ export default function Home() {
           >
             <Plus size={18} />
             Nova Ata
+          </Button>
+          <Button
+            onClick={() => setLocation('/sacramental/convite')}
+            className="flex-1 min-w-[180px] bg-white border-2 border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
+          >
+            <Mail size={18} />
+            Convites
           </Button>
         </div>
 
