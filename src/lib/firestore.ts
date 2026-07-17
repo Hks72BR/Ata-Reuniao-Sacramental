@@ -147,18 +147,27 @@ export async function getAllRecordsFromCloud(): Promise<SacramentalRecord[]> {
 
     console.log('[Firestore] Iniciando busca de atas...');
     
-    // ✅ Query com filtro por wardId + paginação
+    // Buscar TODAS as atas (incluindo legadas sem wardId)
+    // Depois filtramos localmente para incluir atas do wardId atual + atas sem wardId
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('wardId', '==', wardId), // Isolamento multi-tenant
       orderBy('date', 'desc'),
-      limit(PAGE_SIZE) // Paginação
+      limit(PAGE_SIZE * 2) // Buscar mais para compensar filtro local
     );
     
     const querySnapshot = await getDocs(q);
-    console.log('[Firestore] Documentos encontrados:', querySnapshot.size, `(wardId: ${wardId})`);
+    console.log('[Firestore] Total de documentos encontrados:', querySnapshot.size);
     
-    const records = querySnapshot.docs.map(doc => {
+    // Filtrar: incluir atas do wardId atual OU atas sem wardId (legadas)
+    const filteredDocs = querySnapshot.docs.filter(doc => {
+      const data = doc.data();
+      const docWardId = data.wardId;
+      // Incluir se: não tem wardId (legado) OU wardId é igual ao atual
+      return !docWardId || docWardId === wardId;
+    });
+    console.log('[Firestore] Atas após filtro (wardId=' + wardId + ' ou legadas):', filteredDocs.length);
+    
+    const records = filteredDocs.map(doc => {
       return {
         id: doc.id,
         ...convertTimestamps(doc.data())
