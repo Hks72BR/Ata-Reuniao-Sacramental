@@ -79,8 +79,8 @@ export function PendingItemsBanner() {
 
   return (
     <div className="container max-w-6xl mx-auto px-4 mb-6">
-      {/* Banner Principal */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-red-600 via-amber-500 to-red-600 rounded-2xl shadow-2xl border border-red-400/30 animate-pulse-slow">
+      {/* Banner Principal - Tema Navy Blue + Dourado */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#1a3a52] via-[#1e3a5f] to-[#24466e] rounded-2xl shadow-2xl border border-[#d4a574]/30">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{

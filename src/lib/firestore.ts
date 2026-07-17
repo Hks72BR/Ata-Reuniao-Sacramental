@@ -29,27 +29,28 @@ const CACHE_TTL = 3600000; // 1 hora em milissegundos
 const PAGE_SIZE = 50; // Carregar 50 atas por vez
 
 /**
- * Obter wardId do usuário autenticado
- * Fallback: usa localStorage se não houver usuário autenticado
+ * Obter wardId - Usa valor fixo padrão (sem sistema de login)
  */
-function getCurrentWardId(): string | null {
+function getCurrentWardId(): string {
+  // WardId fixo padrão - app sem sistema de login
+  const DEFAULT_WARD_ID = 'ala-casa-grande';
+  
   const user = auth.currentUser;
   if (user?.email) {
-    // Extrair ala-jardim de ala-jardim@igreja.com
     const wardId = user.email.split('@')[0];
-    console.log('[Firestore] WardId atual (auth):', wardId);
+    console.log('[Firestore] WardId (auth):', wardId);
     return wardId;
   }
   
-  // Fallback: usar wardId salvo no localStorage
   const savedWardId = localStorage.getItem('wardId');
   if (savedWardId) {
-    console.log('[Firestore] WardId atual (localStorage):', savedWardId);
+    console.log('[Firestore] WardId (localStorage):', savedWardId);
     return savedWardId;
   }
   
-  console.warn('[Firestore] Nenhum wardId disponível');
-  return null;
+  // Usar wardId padrão fixo
+  console.log('[Firestore] Usando wardId padrão:', DEFAULT_WARD_ID);
+  return DEFAULT_WARD_ID;
 }
 
 /**
@@ -71,9 +72,6 @@ function convertTimestamps(data: any): any {
  */
 export async function saveRecordToCloud(record: SacramentalRecord): Promise<string> {
   const wardId = getCurrentWardId();
-  if (!wardId) {
-    throw new Error('Usuário não autenticado. Faça login novamente.');
-  }
 
   try {
     // Remover campos undefined e preparar dados
@@ -124,9 +122,6 @@ export async function saveRecordToCloud(record: SacramentalRecord): Promise<stri
  */
 export async function getAllRecordsFromCloud(): Promise<SacramentalRecord[]> {
   const wardId = getCurrentWardId();
-  if (!wardId) {
-    throw new Error('Usuário não autenticado. Faça login novamente.');
-  }
 
   try {
     // ✅ Verificar cache primeiro
