@@ -100,6 +100,8 @@ export default function SpeakerInvitation() {
 
       await html2pdf().set(opt).from(element).save();
       toast.success(`PDF gerado para ${speaker.name}`);
+      // Limpar preview após download bem-sucedido
+      setPreviewSpeaker(null);
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       toast.error('Erro ao gerar PDF');

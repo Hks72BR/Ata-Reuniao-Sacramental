@@ -30,17 +30,26 @@ const PAGE_SIZE = 50; // Carregar 50 atas por vez
 
 /**
  * Obter wardId do usuário autenticado
+ * Fallback: usa localStorage se não houver usuário autenticado
  */
 function getCurrentWardId(): string | null {
   const user = auth.currentUser;
-  if (!user?.email) {
-    console.warn('[Firestore] Usuário não autenticado');
-    return null;
+  if (user?.email) {
+    // Extrair ala-jardim de ala-jardim@igreja.com
+    const wardId = user.email.split('@')[0];
+    console.log('[Firestore] WardId atual (auth):', wardId);
+    return wardId;
   }
-  // Extrair ala-jardim de ala-jardim@igreja.com
-  const wardId = user.email.split('@')[0];
-  console.log('[Firestore] WardId atual:', wardId);
-  return wardId;
+  
+  // Fallback: usar wardId salvo no localStorage
+  const savedWardId = localStorage.getItem('wardId');
+  if (savedWardId) {
+    console.log('[Firestore] WardId atual (localStorage):', savedWardId);
+    return savedWardId;
+  }
+  
+  console.warn('[Firestore] Nenhum wardId disponível');
+  return null;
 }
 
 /**
