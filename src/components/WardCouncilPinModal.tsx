@@ -31,14 +31,12 @@ export function WardCouncilPinModal({
   const [error, setError] = useState('');
   const [isShaking, setIsShaking] = useState(false);
   const [lockoutInfo, setLockoutInfo] = useState<{ locked: boolean; remainingTime?: number }>({ locked: false });
-  const [remainingAttempts, setRemainingAttempts] = useState(5);
 
   useEffect(() => {
     // Verificar lockout ao abrir modal
     if (isOpen) {
       const lockout = isLockedOut();
       setLockoutInfo(lockout);
-      setRemainingAttempts(getRemainingAttempts());
     }
   }, [isOpen]);
 
@@ -149,7 +147,6 @@ export function WardCouncilPinModal({
       setError(`Muitas tentativas incorretas. Tente novamente em ${lockout.remainingTime} minutos.`);
     } else {
       const remaining = getRemainingAttempts();
-      setRemainingAttempts(remaining);
       setError(
         `PIN incorreto. ${remaining} tentativa${remaining !== 1 ? 's' : ''} restante${remaining !== 1 ? 's' : ''}.`
       );
