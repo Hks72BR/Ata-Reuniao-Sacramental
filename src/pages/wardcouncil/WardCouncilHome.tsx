@@ -1,78 +1,260 @@
 /**
- * Página Principal - Formulário de Ata de Conselho de Ala
+ * Página Principal - Criação Colaborativa de Ata de Conselho de Ala
+ * NOVO: Edição colaborativa em tempo real com múltiplos usuários
  * Design: Minimalismo Espiritual Contemporâneo
  * Tipografia: Playfair Display (títulos) + Poppins (corpo)
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { InputField, TextAreaField } from '@/components/FormField';
 import { ErrorModal } from '@/components/ErrorModal';
 import { WardCouncilWelcomeModal } from '@/components/WardCouncilWelcomeModal';
-import { WardCouncilRecord, ActionItem, WARD_COUNCIL_RECORD_INITIAL } from '@/types';
+import { WardCouncilUserModal } from '@/components/WardCouncilUserModal';
+import { WardCouncilRecord, ActionItem, WARD_COUNCIL_RECORD_INITIAL, WardCouncilPresence, WARD_COUNCIL_ORGANIZATIONS } from '@/types';
 import { Download, Save, Plus, History, X, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { useLocation } from 'wouter';
-import { isAuthenticated, logout, AUTH_CONFIG } from '@/lib/auth';
-import { saveWardCouncilRecordToCloud } from '@/lib/wardCouncilFirestore';
+import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
+import { 
+  saveWardCouncilRecordToCloud, 
+  subscribeToWardCouncilRecord,
+  updateWardCouncilField,
+  updateOrganizationField,
+  updateEditorPresence,
+  removeEditorPresence,
+} from '@/lib/wardCouncilFirestore';
+
+// Gerar um ID de sessão único
+function generateSessionId(): string {
+  const existing = sessionStorage.getItem('wardcouncil_session_id');
+  if (existing) return existing;
+  const id = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  sessionStorage.setItem('wardcouncil_session_id', id);
+  return id;
+}
 
 export default function WardCouncilHome() {
-  const [record, setRecord] = useState<WardCouncilRecord>(WARD_COUNCIL_RECORD_INITIAL as WardCouncilRecord);
+  const [record, setRecord] = useState<WardCouncilRecord | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [userOrg, setUserOrg] = useState('');
+  const [sessionId] = useState(generateSessionId);
+  const [currentField, setCurrentField] = useState<string | null>(null);
+  const [otherEditors, setOtherEditors] = useState<WardCouncilPresence[]>([]);
   const { isOnline, swReady } = useServiceWorker();
   const [, setLocation] = useLocation();
+  const [loading, setLoading] = useState(true);
 
+  // ID fixo para a ata de criação (draft)
+  const DRAFT_ID = 'wardcouncil-draft-new';
+
+  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const debounceTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  const recordRef = useRef<WardCouncilRecord | null>(null);
+  const pendingFields = useRef<Set<string>>(new Set());
+
+  // Cor do usuário baseada na organização
+  const userColor = WARD_COUNCIL_ORGANIZATIONS.find(o => o.key === userOrg)?.color || '#6B7280';
+
+  // Verificar autenticação e carregar/criar ata no Firebase
   useEffect(() => {
-    // ✅ MUDANÇA: Usar PIN de Sacramental (Bispado) para criar Ward Council
-    // Somente membros do Bispado podem criar novas atas de Conselho de Ala
     if (!isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) {
       setLocation('/');
       return;
     }
-// Verificar se é a primeira vez que o usuário acessa
+
+    // Verificar se viu bem-vindo
     const hasSeenWelcome = localStorage.getItem('wardcouncil_welcome_seen');
     if (!hasSeenWelcome) {
       setShowWelcomeModal(true);
     }
 
-    
-    const savedRecord = localStorage.getItem('wardCouncilRecord');
-    if (savedRecord) {
-      try {
-        const parsed = JSON.parse(savedRecord);
-        setRecord(parsed);
-        toast.success('Ata carregada para edição', { duration: 2000, className: 'toast-success-wardcouncil' });
-      } catch (error) {
-        console.error('Erro ao carregar ata salva:', error);
-      }
+    // Verificar se usuário já se identificou
+    const savedName = sessionStorage.getItem('wardcouncil_user_name');
+    const savedOrg = sessionStorage.getItem('wardcouncil_user_org');
+
+    if (savedName && savedOrg) {
+      setUserName(savedName);
+      setUserOrg(savedOrg);
+    } else {
+      setShowUserModal(true);
     }
+
+    // Criar ata inicial se não existir
+    const initializeDraft = async () => {
+      try {
+        const newRecord: WardCouncilRecord = {
+          ...(WARD_COUNCIL_RECORD_INITIAL as WardCouncilRecord),
+          id: DRAFT_ID,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as WardCouncilRecord;
+        await saveWardCouncilRecordToCloud(newRecord);
+      } catch (error) {
+        console.error('[WardCouncilHome] Erro ao criar draft:', error);
+      }
+    };
+
+    initializeDraft();
   }, [setLocation]);
 
-  const handleInputChange = (field: keyof WardCouncilRecord, value: any) => {
-    setRecord((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
+  // Inscrever para atualizações em tempo real quando usuário está identificado
+  useEffect(() => {
+    if (!userName || !userOrg) return;
+
+    setLoading(true);
+    const unsub = subscribeToWardCouncilRecord(DRAFT_ID, (data) => {
+      if (data) {
+        setRecord(prev => {
+          if (prev && pendingFields.current.size > 0) {
+            const merged = { ...data };
+            for (const field of pendingFields.current) {
+              if (field.startsWith('organizationMatters.')) {
+                const orgKey = field.replace('organizationMatters.', '');
+                if (prev.organizationMatters && (prev.organizationMatters as any)[orgKey] !== undefined) {
+                  (merged.organizationMatters as any)[orgKey] = (prev.organizationMatters as any)[orgKey];
+                }
+              } else if (field === 'actionItems') {
+                merged.actionItems = prev.actionItems;
+              } else {
+                (merged as any)[field] = (prev as any)[field];
+              }
+            }
+            return merged;
+          }
+          return data;
+        });
+        recordRef.current = data;
+      }
+      setLoading(false);
+    });
+
+    unsubscribeRef.current = unsub;
+
+    return () => {
+      unsub();
+      removeEditorPresence(DRAFT_ID, sessionId);
+    };
+  }, [userName, userOrg, sessionId]);
+
+  // Atualizar presença periodicamente
+  useEffect(() => {
+    if (!userName || !userOrg) return;
+
+    const updatePresenceData = () => {
+      const presence: WardCouncilPresence = {
+        sessionId,
+        userName,
+        organization: userOrg,
+        currentField,
+        color: userColor,
+        lastUpdate: new Date().toISOString(),
+      };
+      updateEditorPresence(DRAFT_ID, sessionId, presence);
+    };
+
+    updatePresenceData();
+    const interval = setInterval(updatePresenceData, 15000);
+
+    return () => clearInterval(interval);
+  }, [userName, userOrg, currentField, sessionId, userColor]);
+
+  // Carregar outros editores (presença)
+  useEffect(() => {
+    if (!record?.activeEditors) return;
+
+    const editors = Object.values(record.activeEditors as Record<string, WardCouncilPresence>)
+      .filter((e) => e && e.sessionId !== sessionId)
+      .sort((a, b) => {
+        const aTime = a ? new Date((a as WardCouncilPresence).lastUpdate).getTime() : 0;
+        const bTime = b ? new Date((b as WardCouncilPresence).lastUpdate).getTime() : 0;
+        return bTime - aTime;
       });
-    }
+
+    setOtherEditors(editors as WardCouncilPresence[]);
+  }, [record?.activeEditors, sessionId]);
+
+  const handleInputChange = (field: keyof WardCouncilRecord, value: any) => {
+    if (!record) return;
+
+    setRecord((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, [field]: value };
+      
+      // Marcar como pendente
+      pendingFields.current.add(field);
+      
+      // Debounce: atualizar no Firebase após 500ms de inatividade
+      if (debounceTimers.current[field]) {
+        clearTimeout(debounceTimers.current[field]);
+      }
+      debounceTimers.current[field] = setTimeout(() => {
+        updateWardCouncilField(DRAFT_ID, field, value).catch(error => {
+          console.error(`Erro ao atualizar ${field}:`, error);
+          toast.error(`Erro ao sincronizar ${field}`);
+        });
+        pendingFields.current.delete(field);
+      }, 500);
+
+      // Atualizar presença
+      setCurrentField(field);
+
+      if (errors[field]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+
+      return updated;
+    });
   };
 
-  const handleOrganizationChange = (org: keyof typeof record.organizationMatters, value: string) => {
-    setRecord((prev) => ({
-      ...prev,
-      organizationMatters: {
-        ...prev.organizationMatters,
-        [org]: value,
-      },
-    }));
+  const handleOrganizationChange = (org: string, value: string) => {
+    if (!record) return;
+
+    setRecord((prev) => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        organizationMatters: {
+          ...prev.organizationMatters,
+          [org]: value,
+        },
+      };
+
+      // Marcar como pendente
+      const field = `organizationMatters.${org}`;
+      pendingFields.current.add(field);
+
+      // Debounce
+      if (debounceTimers.current[field]) {
+        clearTimeout(debounceTimers.current[field]);
+      }
+      debounceTimers.current[field] = setTimeout(() => {
+        updateOrganizationField(DRAFT_ID, org, value).catch(error => {
+          console.error(`Erro ao atualizar organização ${org}:`, error);
+          toast.error(`Erro ao sincronizar ${org}`);
+        });
+        pendingFields.current.delete(field);
+      }, 500);
+
+      // Atualizar presença
+      setCurrentField(`${org}`);
+
+      return updated;
+    });
   };
 
   const addActionItem = () => {
+    if (!record) return;
     const newAction: ActionItem = {
       id: Date.now().toString(),
       description: '',
@@ -80,72 +262,127 @@ export default function WardCouncilHome() {
       completed: false,
       notes: '',
     };
-    setRecord((prev) => ({
-      ...prev,
-      actionItems: [...prev.actionItems, newAction],
-    }));
+    setRecord((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, actionItems: [...prev.actionItems, newAction] };
+      
+      // Sincronizar com Firebase
+      const field = 'actionItems';
+      pendingFields.current.add(field);
+      if (debounceTimers.current[field]) {
+        clearTimeout(debounceTimers.current[field]);
+      }
+      debounceTimers.current[field] = setTimeout(() => {
+        updateWardCouncilField(DRAFT_ID, field, updated.actionItems).catch(error => {
+          console.error('Erro ao atualizar action items:', error);
+          toast.error('Erro ao sincronizar ações');
+        });
+        pendingFields.current.delete(field);
+      }, 500);
+
+      return updated;
+    });
   };
 
-  const updateActionItem = (id: string, field: keyof ActionItem, value: any) => {
-    setRecord((prev) => ({
-      ...prev,
-      actionItems: prev.actionItems.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      ),
-    }));
+  const updateActionItem = (id: string, fieldName: keyof ActionItem, value: any) => {
+    if (!record) return;
+    setRecord((prev) => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        actionItems: prev.actionItems.map((item) =>
+          item.id === id ? { ...item, [fieldName]: value } : item
+        ),
+      };
+
+      // Sincronizar com Firebase
+      const field = 'actionItems';
+      pendingFields.current.add(field);
+      if (debounceTimers.current[field]) {
+        clearTimeout(debounceTimers.current[field]);
+      }
+      debounceTimers.current[field] = setTimeout(() => {
+        updateWardCouncilField(DRAFT_ID, field, updated.actionItems).catch(error => {
+          console.error('Erro ao atualizar action item:', error);
+        });
+        pendingFields.current.delete(field);
+      }, 500);
+
+      return updated;
+    });
   };
 
   const removeActionItem = (id: string) => {
-    setRecord((prev) => ({
-      ...prev,
-      actionItems: prev.actionItems.filter((item) => item.id !== id),
-    }));
+    if (!record) return;
+    setRecord((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, actionItems: prev.actionItems.filter((item) => item.id !== id) };
+
+      // Sincronizar com Firebase
+      const field = 'actionItems';
+      pendingFields.current.add(field);
+      if (debounceTimers.current[field]) {
+        clearTimeout(debounceTimers.current[field]);
+      }
+      debounceTimers.current[field] = setTimeout(() => {
+        updateWardCouncilField(DRAFT_ID, field, updated.actionItems).catch(error => {
+          console.error('Erro ao remover action item:', error);
+        });
+        pendingFields.current.delete(field);
+      }, 500);
+
+      return updated;
+    });
   };
 
   const toggleActionCompleted = (id: string) => {
-    setRecord((prev) => ({
-      ...prev,
-      actionItems: prev.actionItems.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      ),
-    }));
+    if (!record) return;
+    setRecord((prev) => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        actionItems: prev.actionItems.map((item) =>
+          item.id === id ? { ...item, completed: !item.completed } : item
+        ),
+      };
+
+      // Sincronizar com Firebase
+      const field = 'actionItems';
+      pendingFields.current.add(field);
+      if (debounceTimers.current[field]) {
+        clearTimeout(debounceTimers.current[field]);
+      }
+      debounceTimers.current[field] = setTimeout(() => {
+        updateWardCouncilField(DRAFT_ID, field, updated.actionItems).catch(error => {
+          console.error('Erro ao toggle action item:', error);
+        });
+        pendingFields.current.delete(field);
+      }, 500);
+
+      return updated;
+    });
   };
 
   const handleSave = async () => {
-    console.log('[WardCouncilHome] handleSave iniciado');
-    console.log('[WardCouncilHome] Erros:', errors);
-    console.log('[WardCouncilHome] Record:', record);
-    
+    if (!record) return;
+
     try {
-      if (Object.keys(errors).length > 0) {
-        console.log('[WardCouncilHome] Mostrando modal de erro - há erros');
-        setShowErrorModal(true);
-        return;
-      }
-      
+      // Validar campos obrigatórios
       if (!record.date || !record.presidedBy || !record.directedBy) {
-        console.log('[WardCouncilHome] Mostrando modal de erro - campos obrigatórios vazios');
         setShowErrorModal(true);
+        toast.error('Preencha data, presidente e diretor');
         return;
       }
 
-      console.log('[WardCouncilHome] Validação passou, salvando...');
-
-      const recordToSave: WardCouncilRecord = {
+      // Atualizar status para "completed"
+      const updatedRecord: WardCouncilRecord = {
         ...record,
         status: 'completed',
-        createdAt: record.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
-      console.log('[WardCouncilHome] Chamando saveWardCouncilRecordToCloud...');
-      const savedId = await saveWardCouncilRecordToCloud(recordToSave);
-      console.log('[WardCouncilHome] Salvo com sucesso! ID:', savedId);
-      
-      // Mostrar mensagem de sucesso
-      alert('✅ ATA SALVA COM SUCESSO');
-      
-      toast.success('✅ ATA DE CONSELHO SALVA COM SUCESSO!', {
+      await saveWardCouncilRecordToCloud(updatedRecord);
+      toast.success('✅ ATA SALVA COM SUCESSO!', {
         duration: 4000,
         className: 'toast-success-wardcouncil',
         style: {
@@ -156,14 +393,12 @@ export default function WardCouncilHome() {
         },
       });
 
-      if (!record.id || !record.id.startsWith('ata-')) {
-        setRecord({ ...recordToSave, id: savedId });
-      }
-
-      localStorage.removeItem('wardCouncilRecord');
+      // Redirecionar para histórico
+      setTimeout(() => {
+        setLocation('/wardcouncil/history');
+      }, 2000);
     } catch (error) {
-      console.error('[WardCouncilHome] Erro ao salvar:', error);
-      alert('❌ Erro ao salvar ata');
+      console.error('Erro ao salvar:', error);
       toast.error('❌ Erro ao salvar ata');
     }
   };
@@ -172,19 +407,20 @@ export default function WardCouncilHome() {
     toast.info('Funcionalidade de download em desenvolvimento');
   };
 
-  const handleNewRecord = () => {
-    if (window.confirm('Deseja criar uma nova ata? As alterações não salvas serão perdidas.')) {
-      setRecord(WARD_COUNCIL_RECORD_INITIAL as WardCouncilRecord);
-      localStorage.removeItem('wardCouncilRecord');
-      toast.success('Nova ata criada', { className: 'toast-success-wardcouncil' });
-    }
+  const handleMenu = () => {
+    setLocation('/');
   };
 
-  const handleLogout = () => {
-    if (window.confirm('Deseja realmente sair?')) {
-      logout(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY);
-      setLocation('/');
-    }
+  const handleHistory = () => {
+    setLocation('/wardcouncil/history');
+  };
+
+  const handleUserModalSuccess = (name: string, org: string) => {
+    setUserName(name);
+    setUserOrg(org);
+    sessionStorage.setItem('wardcouncil_user_name', name);
+    sessionStorage.setItem('wardcouncil_user_org', org);
+    setShowUserModal(false);
   };
 
   return (
@@ -231,13 +467,37 @@ export default function WardCouncilHome() {
             {swReady && (
               <span className="text-xs text-muted-foreground">✓ Pronto para offline</span>
             )}
+            {userName && (
+              <span className="text-xs text-muted-foreground ml-4 px-3 py-1 bg-teal-100 text-teal-800 rounded-full font-semibold">
+                👤 {userName} ({userOrg})
+              </span>
+            )}
           </div>
         </div>
+
+        {/* Editores Presentes */}
+        {otherEditors.length > 0 && (
+          <div className="mb-6 p-4 bg-blue-50/80 backdrop-blur-sm border-2 border-blue-200 rounded-xl shadow-lg">
+            <div className="flex items-center gap-3">
+              <Users className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-900">
+                Editando agora:
+              </span>
+              <div className="flex gap-2 flex-wrap">
+                {otherEditors.map((editor) => (
+                  <span key={editor.sessionId} className="text-xs px-2 py-1 bg-white border border-blue-300 rounded-full text-blue-800 font-medium">
+                    👤 {editor.userName} {editor.currentField && `em ${editor.currentField}`}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-4 mb-8 flex-wrap">
           <Button
-            onClick={handleLogout}
+            onClick={handleMenu}
             className="flex-1 min-w-[180px] bg-white border-2 border-teal-700 text-teal-800 hover:bg-teal-700 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <History size={18} />
@@ -258,22 +518,24 @@ export default function WardCouncilHome() {
             Baixar
           </Button>
           <Button
-            onClick={() => setLocation('/wardcouncil/history')}
+            onClick={handleHistory}
             className="flex-1 min-w-[180px] bg-white border-2 border-teal-700 text-teal-800 hover:bg-teal-700 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
           >
             <History size={18} />
             Histórico
           </Button>
-          <Button
-            onClick={handleNewRecord}
-            className="flex-1 min-w-[180px] bg-white border-2 border-amber-500 text-teal-800 hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
-          >
-            <Plus size={18} />
-            Nova Ata
-          </Button>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+            <p className="text-teal-600 font-semibold mt-2">Carregando ata colaborativa...</p>
+          </div>
+        )}
+
         {/* Form Sections */}
+        {record && !loading && (
         <div className="p-6 md:p-8 space-y-8">
           {/* Informações Básicas */}
           <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl border-l-4 border-amber-500 shadow-lg hover:shadow-xl transition-shadow">
@@ -494,6 +756,7 @@ export default function WardCouncilHome() {
             </Button>
           </div>
         </div>
+        )}
       </div>
 
       {/* Error Modal */}
@@ -510,6 +773,13 @@ export default function WardCouncilHome() {
       <WardCouncilWelcomeModal
         isOpen={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
+      />
+
+      {/* User Identification Modal */}
+      <WardCouncilUserModal
+        isOpen={showUserModal}
+        onClose={() => setShowUserModal(false)}
+        onConfirm={(name: string, org: string) => handleUserModalSuccess(name, org)}
       />
     </div>
   );
