@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { FileText, Droplets, Users, LogOut } from 'lucide-react';
 import { PinAuthModal } from '@/components/PinAuthModal';
+import { WardCouncilPinModal } from '@/components/WardCouncilPinModal';
 import { PendingItemsBanner } from '@/components/PendingItemsBanner';
 import { AUTH_CONFIG } from '@/lib/auth';
 import { authenticateWithBiometrics } from '@/lib/biometrics';
@@ -76,6 +77,11 @@ export default function Dashboard() {
   };
 
   const handleWardCouncilSuccess = () => {
+    setShowWardCouncilAuth(false);
+    setLocation('/wardcouncil/history');
+  };
+
+  const handleWardCouncilCreateSuccess = () => {
     setShowWardCouncilAuth(false);
     setLocation('/wardcouncil');
   };
@@ -351,15 +357,13 @@ export default function Dashboard() {
         timestampKey={AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY}
       />
 
-      <PinAuthModal
+      <WardCouncilPinModal
         isOpen={showWardCouncilAuth}
         onClose={() => setShowWardCouncilAuth(false)}
-        onSuccess={handleWardCouncilSuccess}
+        onSuccessCreate={handleWardCouncilCreateSuccess}
+        onSuccessEdit={handleWardCouncilSuccess}
         title={AUTH_CONFIG.WARD_COUNCIL_TITLE}
         description={AUTH_CONFIG.WARD_COUNCIL_DESCRIPTION}
-        correctPin={AUTH_CONFIG.WARD_COUNCIL_PIN}
-        storageKey={AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY}
-        timestampKey={AUTH_CONFIG.WARD_COUNCIL_TIMESTAMP_KEY}
       />
     </div>
   );

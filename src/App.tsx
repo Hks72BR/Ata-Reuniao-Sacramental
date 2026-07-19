@@ -26,6 +26,7 @@ import BishopricInterviews from "./pages/bishopric/BishopricInterviews";
 import BishopricInterviewsHistory from "./pages/bishopric/BishopricInterviewsHistory";
 import WardCouncilHome from "./pages/wardcouncil/WardCouncilHome";
 import WardCouncilHistory from "./pages/wardcouncil/WardCouncilHistory";
+import WardCouncilEdit from "./pages/wardcouncil/WardCouncilEdit";
 import WardCouncilView from "./pages/wardcouncil/WardCouncilView";
 import SpeakerInvitation from "./pages/SpeakerInvitation";
 import { Loader2 } from "lucide-react";
@@ -49,6 +50,7 @@ function Router() {
       <Route path={"/bishopric/interviews/history"} component={BishopricInterviewsHistory} />
       <Route path={"/wardcouncil"} component={WardCouncilHome} />
       <Route path={"/wardcouncil/history"} component={WardCouncilHistory} />
+      <Route path={"/wardcouncil/edit/:id"} component={WardCouncilEdit} />
       <Route path={"/wardcouncil/view/:id"} component={WardCouncilView} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

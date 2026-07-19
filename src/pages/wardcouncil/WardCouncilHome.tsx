@@ -26,7 +26,9 @@ export default function WardCouncilHome() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY)) {
+    // ✅ MUDANÇA: Usar PIN de Sacramental (Bispado) para criar Ward Council
+    // Somente membros do Bispado podem criar novas atas de Conselho de Ala
+    if (!isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) {
       setLocation('/');
       return;
     }
