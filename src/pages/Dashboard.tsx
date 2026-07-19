@@ -10,7 +10,6 @@ import { FileText, Droplets, Users, LogOut } from 'lucide-react';
 import { PinAuthModal } from '@/components/PinAuthModal';
 import { WardCouncilPinModal } from '@/components/WardCouncilPinModal';
 import { PendingItemsBanner } from '@/components/PendingItemsBanner';
-import WardCouncilDashboardWidget from '@/components/WardCouncilDashboardWidget';
 import { AUTH_CONFIG } from '@/lib/auth';
 import { authenticateWithBiometrics } from '@/lib/biometrics';
 import { useWard } from '@/contexts/WardContext';
@@ -313,15 +312,8 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Seção de Atas Disponíveis - Conselho de Ala */}
-        <div className="mt-20 mb-16">
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-3xl p-8 shadow-2xl">
-            <WardCouncilDashboardWidget />
-          </div>
-        </div>
-
         {/* Footer Info */}
-        <div className="mt-8 text-center">
+        <div className="mt-16 text-center">
           <p className="text-sm text-gray-500 font-['Poppins']">
             💾 Todos os registros são salvos automaticamente no Firebase Cloud
           </p>
