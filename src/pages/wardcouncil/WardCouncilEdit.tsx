@@ -1,764 +1,135 @@
-/**
- * Página de Edição Colaborativa - Ata de Conselho de Ala
- * Múltiplos usuários podem editar simultaneamente em tempo real
- * Mostra indicadores de presença (quem está digitando e onde)
- */
-
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { InputField, TextAreaField } from '@/components/FormField';
-import { ErrorModal } from '@/components/ErrorModal';
-import { WardCouncilUserModal } from '@/components/WardCouncilUserModal';
-import {
-  WardCouncilRecord,
-  WardCouncilPresence,
-  ActionItem,
-  WARD_COUNCIL_ORGANIZATIONS,
-} from '@/types';
-import { Save, Plus, History, X, Users, ArrowLeft, Wifi, WifiOff, Eye } from 'lucide-react';
-import { toast } from 'sonner';
-import { useServiceWorker } from '@/hooks/useServiceWorker';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
-import {
-  subscribeToWardCouncilRecord,
-  updateWardCouncilField,
-  updateOrganizationField,
-  updateEditorPresence,
-  removeEditorPresence,
-  saveWardCouncilRecordToCloud,
-} from '@/lib/wardCouncilFirestore';
-
-// Gerar um ID de sessão único para este navegador/aba
-function generateSessionId(): string {
-  const existing = sessionStorage.getItem('wardcouncil_session_id');
-  if (existing) return existing;
-  const id = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  sessionStorage.setItem('wardcouncil_session_id', id);
-  return id;
-}
+import { toast } from 'sonner';
+import type { WardCouncilRecord } from '@/types';
+import { WardCouncilUserModal } from '@/components/WardCouncilUserModal';
+import { CouncilActionForm, CouncilAgendaForm, CouncilMetadataForm, CouncilProgressForm, CouncilField, councilButton, councilSecondary } from '@/components/WardCouncilForms';
+import { WardCouncilContent, type CouncilEditor } from '@/components/WardCouncilContent';
+import { AUTH_CONFIG, getRemainingAttempts, hasCouncilAccess, isAuthenticated, isLockedOut, login, recordLoginAttempt, matchesConfiguredPin } from '@/lib/auth';
+import { mutateCouncilRecord, recordCouncilActionUpdate, removeEditorPresence, subscribeToCouncilRecords, subscribeToWardCouncilRecord, updateEditorPresence } from '@/lib/wardCouncilFirestore';
+import { councilLocalMode } from '@/lib/wardCouncilLocal';
+import type { CouncilMutation } from '@/lib/wardCouncilWorkflow';
 
 export default function WardCouncilEdit() {
-  const [record, setRecord] = useState<WardCouncilRecord | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [userOrg, setUserOrg] = useState('');
-  const [sessionId] = useState(generateSessionId);
-  const [currentField, setCurrentField] = useState<string | null>(null);
-  const { isOnline } = useServiceWorker();
-  const [, setLocation] = useLocation();
-  const [location] = useLocation();
-
-  // Referências para debounce
-  const debounceTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
-  const unsubscribeRef = useRef<(() => void) | null>(null);
-  const recordRef = useRef<WardCouncilRecord | null>(null);
-  // Track local pending changes to avoid overwriting with stale server data
-  const pendingFields = useRef<Set<string>>(new Set());
-  const pendingClearTimers = useRef<{ [key: string]: NodeJS.Timeout }>({});
-
-  // Extrair ID da URL
+  const [location, navigate] = useLocation();
   const id = location.split('/wardcouncil/edit/')[1];
+  const [record, setRecord] = useState<WardCouncilRecord | null>(null);
+  const [records, setRecords] = useState<WardCouncilRecord[]>([]);
+  const [error, setError] = useState('');
+  const [previousError, setPreviousError] = useState('');
+  const [previousLoading, setPreviousLoading] = useState(true);
+  const [userName, setUserName] = useState(sessionStorage.getItem('wardcouncil_user_name') || '');
+  const [userOrg, setUserOrg] = useState(sessionStorage.getItem('wardcouncil_user_org') || '');
+  const [identify, setIdentify] = useState(!userName || !userOrg);
+  const [editor, setEditor] = useState<CouncilEditor | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [online, setOnline] = useState(navigator.onLine);
+  const [canManage, setCanManage] = useState(isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY));
+  const [showAccess, setShowAccess] = useState(false);
+  const [pin, setPin] = useState('');
+  const [accessError, setAccessError] = useState('');
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const formRef = useRef<HTMLDivElement>(null);
 
-  // Cor do usuário baseada na organização
-  const userColor = WARD_COUNCIL_ORGANIZATIONS.find(o => o.key === userOrg)?.color || '#6B7280';
-
-  // Verificar se o usuário já se identificou
   useEffect(() => {
-    const savedName = sessionStorage.getItem('wardcouncil_user_name');
-    const savedOrg = sessionStorage.getItem('wardcouncil_user_org');
+    if (!hasCouncilAccess()) { navigate('/'); return; }
+    setError('');
+    return subscribeToWardCouncilRecord(id, data => {
+      if (!data) { setError('Ata não encontrada. Volte ao histórico.'); return; }
+      setRecord(data);
+    }, () => setError('Não foi possível carregar a ata. Verifique sua conexão e recarregue a página.'));
+  }, [id, navigate]);
 
-    if (savedName && savedOrg) {
-      setUserName(savedName);
-      setUserOrg(savedOrg);
-    } else {
-      setShowUserModal(true);
-    }
-  }, []);
-
-  // Inscrever para atualizações em tempo real quando temos ID e usuário identificado
   useEffect(() => {
-    if (!id || !userName) return;
-
-    setLoading(true);
-    const unsub = subscribeToWardCouncilRecord(id, (data) => {
-      if (data) {
-        setRecord(prev => {
-          // Merge: keep local pending field values, update everything else
-          if (prev && pendingFields.current.size > 0) {
-            const merged = { ...data };
-            for (const field of pendingFields.current) {
-              if (field.startsWith('organizationMatters.')) {
-                const orgKey = field.replace('organizationMatters.', '');
-                if (prev.organizationMatters && (prev.organizationMatters as any)[orgKey] !== undefined) {
-                  (merged.organizationMatters as any)[orgKey] = (prev.organizationMatters as any)[orgKey];
-                }
-              } else if (field === 'actionItems') {
-                merged.actionItems = prev.actionItems;
-              } else {
-                (merged as any)[field] = (prev as any)[field];
-              }
-            }
-            return merged;
-          }
-          return data;
-        });
-        recordRef.current = data;
-      } else {
-        toast.error('Ata não encontrada');
-        setLocation('/wardcouncil/history');
-      }
-      setLoading(false);
+    if (!hasCouncilAccess()) return;
+    return subscribeToCouncilRecords(data => { setRecords(data); setPreviousLoading(false); setPreviousError(''); }, () => {
+      setPreviousLoading(false); setPreviousError('Não foi possível carregar as designações anteriores. Recarregue a página para tentar novamente.');
     });
-
-    unsubscribeRef.current = unsub;
-
-    return () => {
-      unsub();
-      // Remover presença ao sair
-      removeEditorPresence(id, sessionId);
-    };
-  }, [id, userName, sessionId, setLocation]);
-
-  // Atualizar presença periodicamente
-  useEffect(() => {
-    if (!id || !userName || !userOrg) return;
-
-    const updatePresenceData = () => {
-      const presence: WardCouncilPresence = {
-        sessionId,
-        userName,
-        organization: userOrg,
-        currentField,
-        color: userColor,
-        lastUpdate: new Date().toISOString(),
-      };
-      updateEditorPresence(id, sessionId, presence);
-    };
-
-    updatePresenceData();
-    const interval = setInterval(updatePresenceData, 15000); // Atualizar a cada 15s
-
-    return () => clearInterval(interval);
-  }, [id, userName, userOrg, currentField, sessionId, userColor]);
-
-  // Cleanup ao sair da página
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (id) {
-        removeEditorPresence(id, sessionId);
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [id, sessionId]);
-
-  // Marcar campo como pending e agendar limpeza
-  const markFieldPending = useCallback((fieldKey: string) => {
-    pendingFields.current.add(fieldKey);
-    // Clear pending status after debounce + buffer
-    if (pendingClearTimers.current[fieldKey]) {
-      clearTimeout(pendingClearTimers.current[fieldKey]);
-    }
-    pendingClearTimers.current[fieldKey] = setTimeout(() => {
-      pendingFields.current.delete(fieldKey);
-      delete pendingClearTimers.current[fieldKey];
-    }, 2000);
   }, []);
 
-  // Debounced write para Firestore
-  const debouncedUpdate = useCallback(
-    (fieldPath: string, value: any) => {
-      if (!id) return;
-      if (debounceTimers.current[fieldPath]) {
-        clearTimeout(debounceTimers.current[fieldPath]);
-      }
-      debounceTimers.current[fieldPath] = setTimeout(() => {
-        updateWardCouncilField(id, fieldPath, value, userName);
-        delete debounceTimers.current[fieldPath];
-      }, 500);
-    },
-    [id, userName]
-  );
+  const loaded = !!record;
+  useEffect(() => {
+    if (!loaded || !userName || !userOrg) return;
+    const update = () => updateEditorPresence(id, sessionId, { sessionId, userName, organization: userOrg, currentField: editor?.kind || null, color: '#0f766e', lastUpdate: new Date().toISOString() });
+    void update();
+    const timer = setInterval(update, 15000);
+    return () => { clearInterval(timer); void removeEditorPresence(id, sessionId); };
+  }, [id, loaded, userName, userOrg, sessionId, editor?.kind]);
 
-  // Debounced write para campo de organização
-  const debouncedOrgUpdate = useCallback(
-    (orgKey: string, value: string) => {
-      if (!id) return;
-      const fieldPath = `org_${orgKey}`;
-      if (debounceTimers.current[fieldPath]) {
-        clearTimeout(debounceTimers.current[fieldPath]);
-      }
-      debounceTimers.current[fieldPath] = setTimeout(() => {
-        updateOrganizationField(id, orgKey, value, userName);
-        delete debounceTimers.current[fieldPath];
-      }, 500);
-    },
-    [id, userName]
-  );
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    window.addEventListener('online', update); window.addEventListener('offline', update);
+    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
+  }, []);
 
-  const handleInputChange = (field: keyof WardCouncilRecord, value: any) => {
-    setRecord((prev) => prev ? { ...prev, [field]: value } : prev);
-    markFieldPending(field);
-    debouncedUpdate(field, value);
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => { if (editor || busy) { event.preventDefault(); event.returnValue = ''; } };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [editor, busy]);
+
+  const go = (path: string) => {
+    if (!busy && (!editor || window.confirm('Sair sem salvar o formulário aberto?'))) navigate(path);
+  };
+  const openEditor = (next: CouncilEditor) => {
+    if (editor && !window.confirm('Descartar as alterações do formulário aberto?')) return;
+    setEditor(next);
+    setTimeout(() => { formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); formRef.current?.querySelector<HTMLInputElement>('input, textarea, select')?.focus({ preventScroll: true }); }, 50);
+  };
+  const cancelEditor = () => { if (window.confirm('Descartar as alterações deste formulário?')) setEditor(null); };
+  const saveForm = async (mutation: CouncilMutation) => {
+    setBusy(true);
+    try { await mutateCouncilRecord(id, mutation, userName); setEditor(null); toast.success('Alterações salvas.'); }
+    finally { setBusy(false); }
+  };
+  const runMutation = async (mutation: CouncilMutation) => {
+    if (busy || editor) return;
+    setBusy(true);
+    try { await mutateCouncilRecord(id, mutation, userName); toast.success(mutation.type === 'finalize' ? 'Ata finalizada. As designações poderão ser acompanhadas na próxima reunião.' : 'Alteração salva.'); }
+    catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível salvar.'); }
+    finally { setBusy(false); }
   };
 
-  const handleOrganizationChange = (orgKey: string, value: string) => {
-    setRecord((prev) =>
-      prev
-        ? {
-            ...prev,
-            organizationMatters: {
-              ...prev.organizationMatters,
-              [orgKey]: value,
-            },
-          }
-        : prev
-    );
-    markFieldPending(`organizationMatters.${orgKey}`);
-    debouncedOrgUpdate(orgKey, value);
+  const unlock = () => {
+    const locked = isLockedOut();
+    if (locked.locked) { setAccessError(`Aguarde ${locked.remainingTime} minuto(s) para tentar novamente.`); return; }
+    if (!AUTH_CONFIG.SACRAMENTAL_PIN) { setAccessError('Acesso do bispado não configurado. Contate o administrador.'); return; }
+    if (!matchesConfiguredPin(pin, AUTH_CONFIG.SACRAMENTAL_PIN)) { recordLoginAttempt(false); setAccessError(`PIN incorreto. Tentativas restantes: ${getRemainingAttempts()}.`); return; }
+    recordLoginAttempt(true); login(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY, AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
+    setCanManage(true); setShowAccess(false); setPin(''); setAccessError('');
   };
-
-  const handleFieldFocus = (fieldName: string) => {
-    setCurrentField(fieldName);
-    if (id && userName) {
-      const presence: WardCouncilPresence = {
-        sessionId,
-        userName,
-        organization: userOrg,
-        currentField: fieldName,
-        color: userColor,
-        lastUpdate: new Date().toISOString(),
-      };
-      updateEditorPresence(id, sessionId, presence);
-    }
-  };
-
-  const handleFieldBlur = () => {
-    setCurrentField(null);
-  };
-
-  // Action Items
-  const addActionItem = () => {
-    if (!record || !id) return;
-    const newAction: ActionItem = {
-      id: Date.now().toString(),
-      description: '',
-      responsible: '',
-      completed: false,
-      notes: '',
-    };
-    const newItems = [...record.actionItems, newAction];
-    setRecord((prev) => prev ? { ...prev, actionItems: newItems } : prev);
-    markFieldPending('actionItems');
-    debouncedUpdate('actionItems', newItems);
-  };
-
-  const updateActionItem = (itemId: string, field: keyof ActionItem, value: any) => {
-    if (!record || !id) return;
-    const newItems = record.actionItems.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
-    );
-    setRecord((prev) => prev ? { ...prev, actionItems: newItems } : prev);
-    markFieldPending('actionItems');
-    debouncedUpdate('actionItems', newItems);
-  };
-
-  const removeActionItem = (itemId: string) => {
-    if (!record || !id) return;
-    const newItems = record.actionItems.filter((item) => item.id !== itemId);
-    setRecord((prev) => prev ? { ...prev, actionItems: newItems } : prev);
-    markFieldPending('actionItems');
-    debouncedUpdate('actionItems', newItems);
-  };
-
-  const toggleActionCompleted = (itemId: string) => {
-    if (!record || !id) return;
-    const newItems = record.actionItems.map((item) =>
-      item.id === itemId ? { ...item, completed: !item.completed } : item
-    );
-    setRecord((prev) => prev ? { ...prev, actionItems: newItems } : prev);
-    markFieldPending('actionItems');
-    debouncedUpdate('actionItems', newItems);
-  };
-
-  // Salvar/Finalizar
-  const handleSave = async () => {
-    if (!record || !id) return;
-    
-    if (!record.date || !record.presidedBy || !record.directedBy) {
-      setShowErrorModal(true);
-      return;
-    }
-
-    try {
-      const recordToSave: WardCouncilRecord = {
-        ...record,
-        status: 'completed',
-        updatedAt: new Date().toISOString(),
-        lastEditedBy: userName,
-        lastEditedAt: new Date().toISOString(),
-      };
-      // Remove activeEditors antes de salvar para não poluir o registro final
-      const { activeEditors, ...cleanRecord } = recordToSave as any;
-      await saveWardCouncilRecordToCloud(cleanRecord as WardCouncilRecord);
-      
-      alert('✅ ATA SALVA COM SUCESSO');
-      toast.success('✅ ATA DE CONSELHO SALVA COM SUCESSO!', {
-        duration: 4000,
-        style: { background: '#10b981', color: 'white', fontSize: '16px', fontWeight: 'bold' },
-      });
-    } catch (error) {
-      console.error('[WardCouncilEdit] Erro ao salvar:', error);
-      alert('❌ Erro ao salvar ata');
-    }
-  };
-
-  const handleUserConfirm = (name: string, org: string) => {
-    setUserName(name);
-    setUserOrg(org);
-    setShowUserModal(false);
-    toast.success(`Bem-vindo(a), ${name}!`, { duration: 2000 });
-  };
-
-  const handleBack = () => {
-    if (id) {
-      removeEditorPresence(id, sessionId);
-    }
-    setLocation('/wardcouncil/history');
-  };
-
-  // Helper: Obter editores ativos de outros usuários (excluindo o atual)
-  const getOtherEditors = (): WardCouncilPresence[] => {
-    if (!(record as any)?.activeEditors) return [];
-    return Object.values((record as any).activeEditors).filter(
-      (e: any) => e.sessionId !== sessionId && 
-        // Considerar como ativo se atualizou nos últimos 30 segundos
-        new Date().getTime() - new Date(e.lastUpdate).getTime() < 30000
-    ) as WardCouncilPresence[];
-  };
-
-  // Helper: Verificar quem está editando um campo específico
-  const getFieldEditor = (fieldName: string): WardCouncilPresence | undefined => {
-    const others = getOtherEditors();
-    return others.find((e) => e.currentField === fieldName);
-  };
-
-  // Componente: indicador de presença num campo
-  const FieldPresenceIndicator = ({ fieldName }: { fieldName: string }) => {
-    const editor = getFieldEditor(fieldName);
-    if (!editor) return null;
-    return (
-      <div
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-white animate-pulse shadow-md"
-        style={{ backgroundColor: editor.color }}
-      >
-        <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
-        <span>{editor.userName} digitando...</span>
-      </div>
-    );
-  };
-
-  // Componente: borda colorida quando alguém está editando o campo
-  const getFieldBorderStyle = (fieldName: string): string => {
-    const editor = getFieldEditor(fieldName);
-    if (editor) return `ring-2 ring-offset-1`;
-    return '';
-  };
-
-  const getFieldRingColor = (fieldName: string): React.CSSProperties => {
-    const editor = getFieldEditor(fieldName);
-    if (editor) return { '--tw-ring-color': editor.color } as React.CSSProperties;
-    return {};
-  };
-
-  if (loading || !record) {
-    return (
-      <>
-        <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-cyan-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-teal-600 border-t-transparent" />
-            <p className="mt-4 text-teal-800 font-['Poppins'] font-semibold">Carregando ata...</p>
-          </div>
+  const otherEditors = Object.values(record?.activeEditors || {}).filter(entry => entry.sessionId !== sessionId && Date.now() - new Date(entry.lastUpdate).getTime() < 30000);
+  return <main className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50 pb-12">
+    <header className="bg-teal-900 px-4 py-8 text-white"><div className="mx-auto max-w-5xl"><p className="text-sm text-teal-200">Pauta → discussão → decisões → ações</p><h1 className="mt-2 text-3xl font-bold font-playfair">Conselho de ala</h1><p className="mt-2 text-sm">Prepare a reunião e acompanhe o serviço às pessoas e famílias.</p></div></header>
+    <div className="mx-auto max-w-5xl space-y-6 px-4 pt-6">
+      {councilLocalMode && <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Teste local: as atas do conselho ficam somente neste navegador. Nenhuma alteração do conselho é enviada ao Firebase.</p>}
+      <nav className="flex flex-wrap gap-2" aria-label="Navegação da ata"><button className={councilSecondary} disabled={busy} onClick={() => go('/wardcouncil/history')}>Histórico</button><button className={councilSecondary} disabled={busy} onClick={() => go(`/wardcouncil/view/${id}`)}>Visualizar ata</button><button className={councilSecondary} disabled={busy || !!editor} onClick={() => setIdentify(true)}>Trocar identificação</button></nav>
+      {error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{error}</p>}
+      {!record && !error && <p role="status">Carregando ata…</p>}
+      {record && <>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 text-sm"><div><strong>{record.status === 'draft' ? 'Em preparação' : 'Ata finalizada'}</strong><p className="text-slate-600">{userName || 'Identifique-se para editar'} · {online ? 'Conectado' : 'Sem conexão — aguarde para salvar'}</p>{otherEditors.length > 0 && <p className="text-teal-700">Também nesta ata: {otherEditors.map(entry => entry.userName).join(', ')}</p>}</div>
+          <div role="status">{busy ? 'Salvando…' : editor ? 'Formulário aberto — salve ao terminar' : 'Nenhum formulário pendente'}</div>
         </div>
-        <WardCouncilUserModal
-          isOpen={showUserModal}
-          onConfirm={handleUserConfirm}
-          onClose={() => setLocation('/wardcouncil/history')}
-        />
-      </>
-    );
-  }
-
-  const otherEditors = getOtherEditors();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-cyan-50">
-      {/* Hero Section */}
-      <div className="relative w-full bg-gradient-to-br from-[#0f5257] via-[#0d6270] to-[#0a7180] py-12 shadow-2xl">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 30% 20%, rgba(251, 191, 36, 0.3) 0%, transparent 50%)`,
-          }} />
+        {!canManage && <div className="rounded-lg bg-slate-100 p-4 text-sm"><p>O acesso do bispado permite selecionar e ordenar a pauta, finalizar e reabrir a ata.</p><button className={`${councilSecondary} mt-2`} onClick={() => setShowAccess(value => !value)}>Acesso do bispado</button>
+          {showAccess && <form className="mt-3 flex max-w-sm flex-col gap-2" onSubmit={e => { e.preventDefault(); unlock(); }}><CouncilField label="PIN do bispado" type="password" value={pin} onChange={setPin} required /><button className={councilButton}>Liberar organização da pauta</button>{accessError && <p role="alert" className="text-red-700">{accessError}</p>}</form>}
+        </div>}
+        {record.status !== 'draft' && <p className="rounded-lg bg-teal-100 p-4 text-sm">O conteúdo desta reunião está finalizado. Os retornos das designações podem ser registrados em uma nova reunião.{canManage && <button className={`${councilSecondary} ml-2`} disabled={busy} onClick={() => void runMutation({ type: 'reopen' })}>Reabrir ata</button>}</p>}
+        <div ref={formRef} className="scroll-mt-4">
+          {editor?.kind === 'metadata' && <CouncilMetadataForm key="metadata" record={record} onSave={saveForm} onCancel={cancelEditor} />}
+          {editor?.kind === 'agenda' && <CouncilAgendaForm key={`agenda-${editor.id || 'new'}`} item={record.agendaItems?.find(item => item.id === editor.id)} userName={userName} onSave={saveForm} onCancel={cancelEditor} />}
+          {editor?.kind === 'action' && <CouncilActionForm key={`action-${editor.id || editor.agendaItemId || 'new'}`} item={record.actionItems.find(item => item.id === editor.id)} agenda={record.agendaItems || []} agendaItemId={editor.agendaItemId} onSave={saveForm} onCancel={cancelEditor} />}
+          {editor?.kind === 'progress' && <CouncilProgressForm key={`progress-${editor.sourceId}-${editor.action.id}`} action={editor.action} onCancel={cancelEditor} onSave={async (progress, note) => {
+            setBusy(true);
+            try { await recordCouncilActionUpdate(editor.sourceId, editor.action.id, id, progress, note, userName); setEditor(null); toast.success('Retorno registrado na designação e nesta reunião.'); }
+            finally { setBusy(false); }
+          }} />}
         </div>
-        <div className="relative z-10 text-center px-4">
-          <div className="mb-4 flex justify-center">
-            <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border-2 border-amber-400 flex items-center justify-center shadow-xl">
-              <Users className="w-10 h-10 text-amber-400" />
-            </div>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 font-playfair tracking-wide drop-shadow-lg">
-            Edição Colaborativa
-          </h1>
-          <div className="h-1 w-32 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mb-3" />
-          <p className="text-white/90 text-base font-light">Ata de Conselho de Ala</p>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container max-w-4xl mx-auto py-6 md:py-10 px-4">
-        {/* Barra de Presença - Editores Ativos */}
-        <div className="mb-6 p-4 bg-white/90 backdrop-blur-sm border-2 border-teal-600/30 rounded-xl shadow-lg">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className="text-sm font-medium text-gray-700">
-                {isOnline ? (
-                  <span className="flex items-center gap-1"><Wifi size={14} className="text-green-600" /> Conectado</span>
-                ) : (
-                  <span className="flex items-center gap-1"><WifiOff size={14} className="text-red-600" /> Offline</span>
-                )}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Eu */}
-              <div
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-md"
-                style={{ backgroundColor: userColor }}
-              >
-                <div className="w-2 h-2 bg-white rounded-full" />
-                {userName} (Você)
-              </div>
-              {/* Outros editores */}
-              {otherEditors.map((editor) => (
-                <div
-                  key={editor.sessionId}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-md animate-pulse"
-                  style={{ backgroundColor: editor.color }}
-                >
-                  <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-                  {editor.userName}
-                  {editor.currentField && (
-                    <span className="ml-1 opacity-80">
-                      ({getFieldDisplayName(editor.currentField)})
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          {otherEditors.length > 0 && (
-            <div className="mt-2 text-xs text-teal-700 text-center font-medium">
-              👥 {otherEditors.length + 1} pessoa{otherEditors.length > 0 ? 's' : ''} editando esta ata
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-6 flex-wrap">
-          <Button
-            onClick={handleBack}
-            className="flex-1 min-w-[140px] bg-white border-2 border-teal-700 text-teal-800 hover:bg-teal-700 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
-          >
-            <ArrowLeft size={18} />
-            Voltar
-          </Button>
-          <Button
-            onClick={handleSave}
-            className="flex-1 min-w-[140px] bg-white border-2 border-amber-500 text-teal-800 hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
-          >
-            <Save size={18} />
-            Salvar
-          </Button>
-          <Button
-            onClick={() => record?.id && setLocation(`/wardcouncil/view/${record.id}`)}
-            className="flex-1 min-w-[140px] bg-white border-2 border-teal-700 text-teal-800 hover:bg-teal-700 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
-          >
-            <Eye size={18} />
-            Visualizar
-          </Button>
-          <Button
-            onClick={() => setLocation('/wardcouncil/history')}
-            className="flex-1 min-w-[140px] bg-white border-2 border-teal-700 text-teal-800 hover:bg-teal-700 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2 justify-center"
-          >
-            <History size={18} />
-            Histórico
-          </Button>
-        </div>
-
-        {/* Form Sections */}
-        <div className="p-4 md:p-6 space-y-6">
-          {/* Informações Básicas */}
-          <div
-            className={`bg-white/90 backdrop-blur-sm p-6 rounded-xl border-l-4 border-amber-500 shadow-lg hover:shadow-xl transition-shadow ${getFieldBorderStyle('info')}`}
-            style={getFieldRingColor('info')}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-teal-800 font-playfair flex items-center gap-2">
-                <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                Informações da Reunião
-              </h3>
-              <FieldPresenceIndicator fieldName="info" />
-            </div>
-            <div className="space-y-4">
-              <div onFocus={() => handleFieldFocus('info')} onBlur={handleFieldBlur}>
-                <InputField
-                  type="date"
-                  label="Data da Reunião"
-                  value={record.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
-                  required
-                />
-              </div>
-              <div onFocus={() => handleFieldFocus('info')} onBlur={handleFieldBlur}>
-                <InputField
-                  label="Presidida por"
-                  value={record.presidedBy}
-                  onChange={(e) => handleInputChange('presidedBy', e.target.value)}
-                  placeholder="Nome completo"
-                  required
-                />
-              </div>
-              <div onFocus={() => handleFieldFocus('info')} onBlur={handleFieldBlur}>
-                <InputField
-                  label="Dirigida por"
-                  value={record.directedBy}
-                  onChange={(e) => handleInputChange('directedBy', e.target.value)}
-                  placeholder="Nome completo"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Orações */}
-          <div
-            className={`bg-white/90 backdrop-blur-sm p-6 rounded-xl border-l-4 border-amber-500 shadow-lg hover:shadow-xl transition-shadow ${getFieldBorderStyle('prayers')}`}
-            style={getFieldRingColor('prayers')}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-teal-800 font-playfair flex items-center gap-2">
-                <span className="w-2 h-2 bg-amber-500 rounded-full" />
-                Orações
-              </h3>
-              <FieldPresenceIndicator fieldName="prayers" />
-            </div>
-            <div className="space-y-4">
-              <div onFocus={() => handleFieldFocus('prayers')} onBlur={handleFieldBlur}>
-                <InputField
-                  label="Oração de Abertura"
-                  value={record.openingPrayer}
-                  onChange={(e) => handleInputChange('openingPrayer', e.target.value)}
-                  placeholder="Nome de quem orou"
-                />
-              </div>
-              <div onFocus={() => handleFieldFocus('prayers')} onBlur={handleFieldBlur}>
-                <InputField
-                  label="Oração de Encerramento"
-                  value={record.closingPrayer}
-                  onChange={(e) => handleInputChange('closingPrayer', e.target.value)}
-                  placeholder="Nome de quem orou"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Assuntos das Organizações - Cada uma com indicador de presença */}
-          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-xl border-l-4 border-teal-600 shadow-lg hover:shadow-xl transition-shadow">
-            <h3 className="text-xl font-bold text-teal-800 mb-4 font-playfair flex items-center gap-2">
-              <span className="w-2 h-2 bg-teal-600 rounded-full" />
-              Assuntos das Organizações
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Cada organização pode editar seu próprio bloco simultaneamente.
-            </p>
-            <div className="space-y-4">
-              {WARD_COUNCIL_ORGANIZATIONS.filter(o => 
-                !['bispado', 'secretario'].includes(o.key)
-              ).map((org) => {
-                const orgKey = org.key as keyof typeof record.organizationMatters;
-                const fieldName = `org_${org.key}`;
-                const editor = getFieldEditor(fieldName);
-                return (
-                  <div
-                    key={org.key}
-                    className={`rounded-xl p-4 border-2 transition-all ${
-                      editor ? 'shadow-md' : 'border-gray-200'
-                    }`}
-                    style={editor ? {
-                      borderColor: editor.color,
-                      boxShadow: `0 0 0 1px ${editor.color}20, 0 4px 12px ${editor.color}15`,
-                    } : {}}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: org.color }} />
-                        <span className="font-semibold text-teal-800">{org.label}</span>
-                      </div>
-                      <FieldPresenceIndicator fieldName={fieldName} />
-                    </div>
-                    <div onFocus={() => handleFieldFocus(fieldName)} onBlur={handleFieldBlur}>
-                      <TextAreaField
-                        label=""
-                        value={record.organizationMatters[orgKey] || ''}
-                        onChange={(e) => handleOrganizationChange(org.key, e.target.value)}
-                        placeholder={`Assuntos da organização ${org.label.replace(/^[^\s]+\s/, '')}...`}
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Itens de Ação */}
-          <div
-            className={`bg-white/90 backdrop-blur-sm p-6 rounded-xl border-l-4 border-teal-600 shadow-lg hover:shadow-xl transition-shadow ${getFieldBorderStyle('actions')}`}
-            style={getFieldRingColor('actions')}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-teal-800 font-playfair flex items-center gap-2">
-                <span className="w-2 h-2 bg-teal-600 rounded-full" />
-                Itens de Ação ({record.actionItems.length})
-              </h3>
-              <div className="flex items-center gap-2">
-                <FieldPresenceIndicator fieldName="actions" />
-                <Button
-                  onClick={addActionItem}
-                  size="sm"
-                  className="bg-white border-2 border-teal-600 text-teal-800 hover:bg-teal-600 hover:text-white transition-all"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {record.actionItems.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p className="text-sm">Nenhum item de ação adicionado.</p>
-                  <p className="text-xs mt-1">Clique em "Adicionar" para criar um item.</p>
-                </div>
-              ) : (
-                record.actionItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      item.completed
-                        ? 'bg-emerald-50/80 border-emerald-400 shadow-md'
-                        : 'bg-white/60 border-teal-200 hover:border-teal-400 hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1 space-y-3" onFocus={() => handleFieldFocus('actions')} onBlur={handleFieldBlur}>
-                        <InputField
-                          label="Descrição"
-                          value={item.description}
-                          onChange={(e) => updateActionItem(item.id, 'description', e.target.value)}
-                          placeholder="O que precisa ser feito?"
-                        />
-                        <InputField
-                          label="Responsável"
-                          value={item.responsible || ''}
-                          onChange={(e) => updateActionItem(item.id, 'responsible', e.target.value)}
-                          placeholder="Quem vai fazer?"
-                        />
-                        <TextAreaField
-                          label="Observações"
-                          value={item.notes || ''}
-                          onChange={(e) => updateActionItem(item.id, 'notes', e.target.value)}
-                          placeholder="Notas adicionais..."
-                          rows={2}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-2 items-center">
-                        <button
-                          onClick={() => toggleActionCompleted(item.id)}
-                          className={`flex-shrink-0 w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all font-bold text-sm ${
-                            item.completed
-                              ? 'bg-emerald-500 border-emerald-600 text-white shadow-md'
-                              : 'bg-white border-teal-400 text-teal-600 hover:border-emerald-500 hover:bg-emerald-50'
-                          }`}
-                          title={item.completed ? 'Marcar como pendente' : 'Marcar como concluído'}
-                        >
-                          {item.completed ? '✓' : '○'}
-                        </button>
-                        <button
-                          onClick={() => removeActionItem(item.id)}
-                          className="flex-shrink-0 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Remover item"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Botão Salvar */}
-          <div className="mt-12 flex justify-center">
-            <Button
-              onClick={handleSave}
-              className="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-12 py-6 text-xl font-bold shadow-2xl hover:shadow-3xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-3 rounded-xl"
-            >
-              <Save size={28} />
-              Salvar Ata
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Modais */}
-      {showErrorModal && (
-        <ErrorModal
-          isOpen={showErrorModal}
-          onClose={() => setShowErrorModal(false)}
-          message="Preencha os campos obrigatórios: Data, Presidida por e Dirigida por."
-          theme="teal"
-        />
-      )}
-
-      <WardCouncilUserModal
-        isOpen={showUserModal}
-        onConfirm={handleUserConfirm}
-        onClose={() => setLocation('/wardcouncil/history')}
-      />
+        <WardCouncilContent record={record} records={records} onEdit={openEditor} onMutation={mutation => void runMutation(mutation)} canManage={canManage} busy={busy || !!editor || !userName || (!online && !councilLocalMode)} previousError={previousError} previousLoading={previousLoading} />
+        {canManage && record.status === 'draft' && <div className="rounded-xl border border-teal-300 bg-teal-50 p-5"><h2 className="mb-2 font-bold text-teal-950">Finalizar esta reunião</h2><p className="mb-4 text-sm text-slate-700">Confira as decisões e os responsáveis. Finalizar preserva o conteúdo da ata; os retornos continuam nas próximas reuniões.</p>
+          <button className={councilButton} disabled={busy || !!editor || !userName || (!online && !councilLocalMode)} onClick={() => { if (window.confirm('Finalizar a ata após conferir as decisões e designações?')) void runMutation({ type: 'finalize' }); }}>Finalizar ata</button>
+        </div>}
+      </>}
     </div>
-  );
-}
-
-/**
- * Helper: Nome legível de um campo para exibição na barra de presença
- */
-function getFieldDisplayName(fieldName: string): string {
-  const names: { [key: string]: string } = {
-    info: 'Informações',
-    prayers: 'Orações',
-    actions: 'Itens de Ação',
-    org_rapazes: 'Rapazes',
-    org_mocas: 'Moças',
-    org_socorro: 'Socorro',
-    org_elderes: 'Élderes',
-    org_missionaria: 'Missionária',
-    org_primaria: 'Primária',
-    org_escolaDominical: 'Escola Dom.',
-    org_temploHistoriaFamilia: 'Templo/HF',
-  };
-  return names[fieldName] || fieldName;
+    <WardCouncilUserModal isOpen={identify} onConfirm={(name, org) => { setUserName(name); setUserOrg(org); setIdentify(false); }} onClose={() => { if (userName && userOrg) setIdentify(false); else navigate('/wardcouncil/history'); }} />
+  </main>;
 }

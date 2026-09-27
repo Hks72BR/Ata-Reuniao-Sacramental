@@ -4,6 +4,10 @@ interface ImportMetaEnv {
   // Autenticação
   readonly VITE_SACRAMENTAL_PIN: string
   readonly VITE_BAPTISMAL_PIN: string
+  readonly VITE_WARD_COUNCIL_PIN: string
+  readonly VITE_DELETE_PIN: string
+  readonly VITE_WARD_COUNCIL_ADMIN_PIN?: string
+  readonly VITE_WARD_COUNCIL_LOCAL?: string
   
   // Firebase
   readonly VITE_FIREBASE_API_KEY: string

@@ -14,6 +14,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:conselho": "node scripts/dev-council.mjs",
+    "test:conselho": "node --test tests/wardCouncilWorkflow.test.mjs tests/authEnvironment.test.mjs",
     "build": "node update-sw-version.mjs && tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

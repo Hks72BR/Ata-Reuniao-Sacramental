@@ -1,12 +1,12 @@
 /**
  * Modal de PIN Administrativo - Conselho de Ala
- * PIN 2661 para criar e excluir atas de conselho de ala
+ * PIN administrativo configurado no ambiente para criar e excluir atas.
  */
 
 import { useState, useEffect } from 'react';
 import { X, Lock, Shield } from 'lucide-react';
 
-const ADMIN_PIN = '2661';
+import { AUTH_CONFIG, matchesConfiguredPin } from '@/lib/auth';
 
 interface WardCouncilAdminPinModalProps {
   isOpen: boolean;
@@ -76,7 +76,7 @@ export function WardCouncilAdminPinModal({
   };
 
   const checkPin = (enteredPin: string) => {
-    if (enteredPin === ADMIN_PIN) {
+    if (matchesConfiguredPin(enteredPin, AUTH_CONFIG.WARD_COUNCIL_ADMIN_PIN)) {
       onSuccess();
     } else {
       setError('PIN incorreto! Acesso negado.');

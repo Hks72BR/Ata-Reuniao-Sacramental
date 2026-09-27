@@ -11,14 +11,19 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-// Configuração do Firebase a partir de variáveis de ambiente
+function requireFirebaseSetting(name: string, value: string | undefined): string {
+  if (!value?.trim()) throw new Error(`Configure ${name} no ambiente antes de iniciar o aplicativo.`);
+  return value.trim();
+}
+
+// Sem projeto padrão: evita conectar a um ambiente diferente por engano.
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBYaN3GTy8nI-wR9xa3OhFhUCDj1QVzRYY",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ata-sacramental-829c1.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ata-sacramental-829c1",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ata-sacramental-829c1.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "474847726992",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:474847726992:web:425cd4cf64661ef27f7715"
+  apiKey: requireFirebaseSetting('VITE_FIREBASE_API_KEY', import.meta.env.VITE_FIREBASE_API_KEY),
+  authDomain: requireFirebaseSetting('VITE_FIREBASE_AUTH_DOMAIN', import.meta.env.VITE_FIREBASE_AUTH_DOMAIN),
+  projectId: requireFirebaseSetting('VITE_FIREBASE_PROJECT_ID', import.meta.env.VITE_FIREBASE_PROJECT_ID),
+  storageBucket: requireFirebaseSetting('VITE_FIREBASE_STORAGE_BUCKET', import.meta.env.VITE_FIREBASE_STORAGE_BUCKET),
+  messagingSenderId: requireFirebaseSetting('VITE_FIREBASE_MESSAGING_SENDER_ID', import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID),
+  appId: requireFirebaseSetting('VITE_FIREBASE_APP_ID', import.meta.env.VITE_FIREBASE_APP_ID)
 };
 
 // Inicializar Firebase

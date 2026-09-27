@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { X, Lock, AlertTriangle } from 'lucide-react';
 import { isLockedOut, recordLoginAttempt, getRemainingAttempts, login } from '@/lib/auth';
-import { AUTH_CONFIG } from '@/lib/auth';
+import { AUTH_CONFIG, matchesConfiguredPin } from '@/lib/auth';
 
 interface WardCouncilPinModalProps {
   isOpen: boolean;
@@ -109,7 +109,7 @@ export function WardCouncilPinModal({
 
   const checkPin = (enteredPin: string) => {
     // ✅ Verificar PIN de Sacramental (para CRIAR)
-    if (enteredPin === AUTH_CONFIG.SACRAMENTAL_PIN) {
+    if (matchesConfiguredPin(enteredPin, AUTH_CONFIG.SACRAMENTAL_PIN)) {
       recordLoginAttempt(true);
       login(
         AUTH_CONFIG.SACRAMENTAL_SESSION_KEY,
@@ -123,7 +123,7 @@ export function WardCouncilPinModal({
     }
 
     // ✅ Verificar PIN de Ward Council (para EDITAR)
-    if (enteredPin === AUTH_CONFIG.WARD_COUNCIL_PIN) {
+    if (matchesConfiguredPin(enteredPin, AUTH_CONFIG.WARD_COUNCIL_PIN)) {
       recordLoginAttempt(true);
       login(
         AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY,

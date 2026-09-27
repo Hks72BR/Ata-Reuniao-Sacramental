@@ -183,6 +183,35 @@ export interface ActionItem {
   responsible?: string; // Responsável pela ação
   completed: boolean;
   notes?: string;
+  agendaItemId?: string;
+  dueDate?: string;
+  progress?: 'pending' | 'in_progress' | 'completed';
+  updates?: CouncilActionUpdate[];
+}
+
+export interface CouncilActionUpdate {
+  id: string;
+  meetingId: string;
+  meetingDate: string;
+  recordedAt: string;
+  recordedBy: string;
+  progress: 'pending' | 'in_progress' | 'completed';
+  note: string;
+}
+
+export interface CouncilAgendaItem {
+  id: string;
+  title: string;
+  objective: string;
+  context: string;
+  area: string;
+  organizations: string[];
+  estimatedMinutes: number;
+  selected: boolean;
+  discussion: string;
+  decision: string;
+  outcome: 'open' | 'decided' | 'deferred' | 'information' | 'referred';
+  createdBy: string;
 }
 
 export interface FormErrors {
@@ -275,6 +304,18 @@ export interface WardCouncilRecord {
 
   // Editores ativos (edição colaborativa)
   activeEditors?: Record<string, WardCouncilPresence>;
+  schemaVersion?: number;
+  agendaItems?: CouncilAgendaItem[];
+  actionReviews?: Record<string, {
+    sourceRecordId: string;
+    actionId: string;
+    description: string;
+    responsible: string;
+    dueDate: string;
+    update: CouncilActionUpdate;
+  }>;
+  finalizedAt?: string;
+  finalizedBy?: string;
 }
 
 export interface OrganizationMatters {

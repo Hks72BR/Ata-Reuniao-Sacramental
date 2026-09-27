@@ -18,101 +18,24 @@ const SESSION_TIMEOUT = 8 * 60 * 60 * 1000;
 const MAX_ATTEMPTS = 5; // Máximo de tentativas
 const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos de bloqueio
 
-// Configuração de PINs
-// SACRAMENTAL: pega do Vercel (variável de ambiente)
-// BAPTISMAL: hardcoded no código
-// WARD_COUNCIL: pega do Vercel (variável de ambiente)
-// DELETE: PIN especial para exclusão de atas (variável de ambiente)
-const SACRAMENTAL_PIN_FROM_ENV = import.meta.env.VITE_SACRAMENTAL_PIN;
-const WARD_COUNCIL_PIN_FROM_ENV = import.meta.env.VITE_WARD_COUNCIL_PIN;
-const DELETE_PIN_FROM_ENV = import.meta.env.VITE_DELETE_PIN;
-
-// Validar PIN do Sacramental
-function validateSacramentalPin(pin: string | undefined): string {
-  const fallback = '2026';
-  
-  if (!pin) {
-    if (import.meta.env.DEV) {
-      console.warn(`⚠️ SACRAMENTAL_PIN não configurado, usando fallback: ${fallback}`);
-    }
-    return fallback;
-  }
-  
-  if (!/^\d{4}$/.test(pin)) {
-    console.error(`❌ SACRAMENTAL_PIN inválido: "${pin}" (deve ter exatamente 4 dígitos)`);
-    console.warn(`⚠️ Usando fallback: ${fallback}`);
-    return fallback;
-  }
-  
-  if (import.meta.env.DEV) {
-    console.log(`✅ SACRAMENTAL_PIN configurado corretamente`);
-  }
-  
-  return pin;
+// PINs ausentes ou inválidos desabilitam o acesso correspondente.
+function readConfiguredPin(name: string, value: string | undefined): string {
+  if (value && /^\d{4}$/.test(value)) return value;
+  console.error(`${name} ausente ou inválido: configure quatro dígitos no ambiente.`);
+  return '';
 }
 
-// Validar PIN do Conselho da Ala
-function validateWardCouncilPin(pin: string | undefined): string {
-  const fallback = '2027';
-  
-  if (!pin) {
-    if (import.meta.env.DEV) {
-      console.warn(`⚠️ WARD_COUNCIL_PIN não configurado, usando fallback: ${fallback}`);
-    }
-    return fallback;
-  }
-  
-  if (!/^\d{4}$/.test(pin)) {
-    console.error(`❌ WARD_COUNCIL_PIN inválido: "${pin}" (deve ter exatamente 4 dígitos)`);
-    console.warn(`⚠️ Usando fallback: ${fallback}`);
-    return fallback;
-  }
-  
-  if (import.meta.env.DEV) {
-    console.log(`✅ WARD_COUNCIL_PIN configurado corretamente`);
-  }
-  
-  return pin;
-}
-
-// Validar PIN de Exclusão (configuração)
-function getDeletePinFromEnv(pin: string | undefined): string {
-  const fallback = '9999';
-  
-  if (!pin) {
-    if (import.meta.env.DEV) {
-      console.warn(`⚠️ DELETE_PIN não configurado, usando fallback: ${fallback}`);
-    }
-    return fallback;
-  }
-  
-  if (!/^\d{4}$/.test(pin)) {
-    console.error(`❌ DELETE_PIN inválido: "${pin}" (deve ter exatamente 4 dígitos)`);
-    console.warn(`⚠️ Usando fallback: ${fallback}`);
-    return fallback;
-  }
-  
-  if (import.meta.env.DEV) {
-    console.log(`✅ DELETE_PIN configurado corretamente`);
-  }
-  
-  return pin;
-}
-
-if (import.meta.env.DEV) {
-  console.log('🔐 Auth Config - Sacramental: variável ambiente | Batismal: hardcoded | Conselho Ala: variável ambiente | Delete: variável ambiente');
+export function matchesConfiguredPin(enteredPin: string, configuredPin: string): boolean {
+  return /^\d{4}$/.test(configuredPin) && enteredPin === configuredPin;
 }
 
 export const AUTH_CONFIG = {
-  // Sacramental: pega do Vercel
-  SACRAMENTAL_PIN: validateSacramentalPin(SACRAMENTAL_PIN_FROM_ENV),
-  // Batismal: hardcoded
-  BAPTISMAL_PIN: '2015',
-  // Conselho da Ala: pega do Vercel
-  WARD_COUNCIL_PIN: validateWardCouncilPin(WARD_COUNCIL_PIN_FROM_ENV),
-  // Delete: PIN especial para exclusão (variável de ambiente)
-  DELETE_PIN: getDeletePinFromEnv(DELETE_PIN_FROM_ENV),
-  
+  SACRAMENTAL_PIN: readConfiguredPin('VITE_SACRAMENTAL_PIN', import.meta.env.VITE_SACRAMENTAL_PIN),
+  BAPTISMAL_PIN: readConfiguredPin('VITE_BAPTISMAL_PIN', import.meta.env.VITE_BAPTISMAL_PIN),
+  WARD_COUNCIL_PIN: readConfiguredPin('VITE_WARD_COUNCIL_PIN', import.meta.env.VITE_WARD_COUNCIL_PIN),
+  DELETE_PIN: readConfiguredPin('VITE_DELETE_PIN', import.meta.env.VITE_DELETE_PIN),
+  // Se não houver PIN específico, utiliza o PIN administrativo de exclusão configurado.
+  WARD_COUNCIL_ADMIN_PIN: readConfiguredPin('VITE_WARD_COUNCIL_ADMIN_PIN ou VITE_DELETE_PIN', import.meta.env.VITE_WARD_COUNCIL_ADMIN_PIN || import.meta.env.VITE_DELETE_PIN),
   // Chaves de sessão (não alterar)
   SACRAMENTAL_SESSION_KEY: 'sacramental_auth',
   BAPTISMAL_SESSION_KEY: 'baptismal_auth',
@@ -299,12 +222,16 @@ export function login(sessionKey: string, timestampKey: string): void {
   updateSessionTimestamp(timestampKey);
 }
 
+export function hasCouncilAccess(): boolean {
+  return isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY) || isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY);
+}
+
 /**
  * Validar PIN de Exclusão
  * Retorna true se o PIN estiver correto
  */
 export function validateDeletePin(enteredPin: string): boolean {
-  return enteredPin === AUTH_CONFIG.DELETE_PIN;
+  return matchesConfiguredPin(enteredPin, AUTH_CONFIG.DELETE_PIN);
 }
 
 /**

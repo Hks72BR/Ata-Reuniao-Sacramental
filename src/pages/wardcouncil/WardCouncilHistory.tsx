@@ -1,6 +1,6 @@
 /**
  * Página de Histórico - Consulta de Atas de Conselho de Ala Anteriores
- * PIN 2661 obrigatório para criar ou excluir atas
+ * PIN administrativo obrigatório para criar ou excluir atas.
  */
 
 import { useState, useEffect } from 'react';
@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
 import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
+import { councilLocalMode } from '@/lib/wardCouncilLocal';
 import { 
   getAllWardCouncilRecordsFromCloud, 
   deleteWardCouncilRecordFromCloud,
@@ -32,7 +33,7 @@ export default function WardCouncilHistory() {
 
   useEffect(() => {
     // Verificar autenticação
-    if (!isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY)) {
+    if (!isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY) && !isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) {
       setLocation('/');
       return;
     }
@@ -72,6 +73,8 @@ export default function WardCouncilHistory() {
         record.date?.toLowerCase().includes(searchLower) ||
         record.presidedBy?.toLowerCase().includes(searchLower) ||
         record.directedBy?.toLowerCase().includes(searchLower) ||
+        record.agendaItems?.some(item => `${item.title} ${item.objective} ${item.discussion} ${item.decision}`.toLowerCase().includes(searchLower)) ||
+        record.actionItems?.some(item => `${item.description} ${item.responsible || ''}`.toLowerCase().includes(searchLower)) ||
         Object.values(record.organizationMatters).some(matter => 
           matter?.toLowerCase().includes(searchLower)
         )
@@ -124,7 +127,7 @@ export default function WardCouncilHistory() {
         setRecordToDeleteDate('');
         await loadRecords();
       } catch (error) {
-        toast.error('❌ Erro ao deletar ata de conselho');
+        toast.error(error instanceof Error ? error.message : 'Erro ao excluir ata de conselho');
         console.error(error);
       }
     }
@@ -142,7 +145,7 @@ export default function WardCouncilHistory() {
         <div className="container max-w-4xl mx-auto py-8 px-4">
           <div className="flex items-center gap-4 mb-6">
             <Button
-              onClick={() => setLocation('/wardcouncil')}
+              onClick={() => setLocation('/')}
               className="bg-white border-2 border-teal-600 text-teal-800 hover:bg-teal-600 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
             >
               <ArrowLeft size={18} />
@@ -213,6 +216,8 @@ export default function WardCouncilHistory() {
           </div>
         </div>
 
+        {councilLocalMode && <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Teste local — estas atas estão somente neste navegador.</p>}
+        {!loading && filteredRecords.length === 0 && <p className="py-8 text-center text-teal-800">Nenhuma ata encontrada. Use “Nova Ata” para preparar uma reunião.</p>}
         {/* Loading */}
         {loading && (
           <div className="text-center py-12">
@@ -244,6 +249,8 @@ export default function WardCouncilHistory() {
                       Conselho de {formatDate(record.date)}
                     </h3>
                     <div className="space-y-1 text-sm text-gray-700 font-['Poppins']">
+                      <p className="font-semibold text-teal-800">{record.status === 'draft' ? 'Em preparação' : record.status === 'archived' ? 'Arquivada' : 'Finalizada'} · {record.agendaItems?.filter(item => item.selected).length || 0} assunto(s) na pauta</p>
+                      {record.agendaItems?.filter(item => item.selected).slice(0, 3).map(item => <p key={item.id} className="text-sm">• {item.title}</p>)}
                       <p><strong className="text-teal-700">Presidido por:</strong> {record.presidedBy}</p>
                       <p><strong className="text-teal-700">Dirigido por:</strong> {record.directedBy}</p>
                       

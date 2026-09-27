@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Lock, AlertTriangle } from 'lucide-react';
-import { isLockedOut, recordLoginAttempt, getRemainingAttempts, login } from '@/lib/auth';
+import { isLockedOut, recordLoginAttempt, getRemainingAttempts, login, matchesConfiguredPin } from '@/lib/auth';
 
 interface PinAuthModalProps {
   isOpen: boolean;
@@ -112,7 +112,7 @@ export function PinAuthModal({
   };
 
   const checkPin = (enteredPin: string) => {
-    if (enteredPin === correctPin) {
+    if (matchesConfiguredPin(enteredPin, correctPin)) {
       // PIN correto - registrar sucesso e fazer login
       recordLoginAttempt(true);
       login(storageKey, timestampKey);
