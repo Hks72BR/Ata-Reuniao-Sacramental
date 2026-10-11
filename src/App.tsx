@@ -52,6 +52,7 @@ function Router() {
       <Route path={"/wardcouncil/history"} component={WardCouncilHistory} />
       <Route path={"/wardcouncil/edit/:id"} component={WardCouncilEdit} />
       <Route path={"/wardcouncil/view/:id"} component={WardCouncilView} />
+      <Route path={"/wardcouncil/shared/:id"} component={WardCouncilView} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

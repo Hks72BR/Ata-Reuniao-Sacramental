@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { randomInt } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { build, transform } from 'esbuild';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 const source = await readFile('src/lib/auth.ts', 'utf8');
 const randomPin = () => String(randomInt(1000, 10000));
@@ -11,6 +13,68 @@ async function loadAuth(env) {
   return import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 }
 const configured = () => Object.fromEntries(['VITE_SACRAMENTAL_PIN', 'VITE_BAPTISMAL_PIN', 'VITE_WARD_COUNCIL_PIN', 'VITE_DELETE_PIN'].map(name => [name, randomPin()]));
+
+test('link compartilhado pede o PIN configurado e permanece somente leitura', async () => {
+  const env = configured();
+  const { outputFiles } = await build({
+    entryPoints: ['src/pages/wardcouncil/WardCouncilView.tsx'],
+    bundle: true, write: false, format: 'esm', platform: 'node',
+    external: ['react', 'react/jsx-runtime'],
+    define: { 'import.meta.env': JSON.stringify(env) },
+    plugins: [{
+      name: 'mock-view-services',
+      setup(build) {
+        build.onResolve({ filter: /^wouter$|^@\/lib\/wardCouncilFirestore$|^@\/lib\/wardCouncilLocal$|^@\/components\/(WardCouncilContent|WardCouncilForms|PinAuthModal)$/ }, args => ({ path: args.path, namespace: 'mock-view-services' }));
+        build.onLoad({ filter: /.*/, namespace: 'mock-view-services' }, args => {
+          const mocks = {
+            wouter: 'export const useLocation = () => [globalThis.councilShareTestPath, () => {}];',
+            '@/lib/wardCouncilFirestore': 'export const subscribeToWardCouncilRecord = () => { throw new Error("SSR must not subscribe"); };',
+            '@/lib/wardCouncilLocal': 'export const councilLocalMode = false;',
+            '@/components/WardCouncilContent': 'export const WardCouncilContent = () => null;',
+            '@/components/WardCouncilForms': 'export const councilSecondary = "";',
+            '@/components/PinAuthModal': 'export const PinAuthModal = props => { globalThis.councilShareTestModal = props; return null; };',
+          };
+          return { contents: mocks[args.path] };
+        });
+      },
+    }],
+  });
+  const code = outputFiles[0].text.replace(/from "(react(?:\/jsx-runtime)?)"/g, (_match, name) =>
+    `from "${import.meta.resolve(name)}"`);
+  const { default: View } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+  const originalStorage = globalThis.sessionStorage;
+  const values = new Map();
+  globalThis.sessionStorage = {
+    getItem: key => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: key => values.delete(key),
+  };
+  try {
+    globalThis.councilShareTestPath = '/wardcouncil/shared/example';
+    let html = renderToStaticMarkup(createElement(View));
+    assert.match(html, /Digite o PIN do Conselho/);
+    assert.doesNotMatch(html, /Abrir edição|Histórico|Compartilhar ata/);
+    assert.equal(globalThis.councilShareTestModal.correctPin, env.VITE_WARD_COUNCIL_PIN);
+    assert.equal(globalThis.councilShareTestModal.storageKey, 'wardcouncil_auth');
+    assert.equal(globalThis.councilShareTestModal.timestampKey, 'wardcouncil_auth_time');
+    values.set('wardcouncil_auth', 'true');
+    values.set('wardcouncil_auth_time', String(Date.now()));
+    html = renderToStaticMarkup(createElement(View));
+    assert.match(html, /somente leitura/);
+    assert.doesNotMatch(html, /Abrir edição|Histórico|Compartilhar ata/);
+    globalThis.councilShareTestPath = '/wardcouncil/view/example';
+    html = renderToStaticMarkup(createElement(View));
+    assert.match(html, /Abrir edição/);
+    assert.match(html, /Compartilhar ata/);
+    values.set('wardcouncil_auth_time', String(Date.now() - 9 * 60 * 60 * 1000));
+    globalThis.councilShareTestPath = '/wardcouncil/shared/example';
+    assert.match(renderToStaticMarkup(createElement(View)), /Digite o PIN do Conselho/);
+  } finally {
+    globalThis.sessionStorage = originalStorage;
+    delete globalThis.councilShareTestPath;
+    delete globalThis.councilShareTestModal;
+  }
+});
 
 test('todos os PINs são lidos do ambiente, inclusive o batismal', async () => {
   const env = configured();
