@@ -4,7 +4,7 @@ import type { WardCouncilRecord } from '@/types';
 import { subscribeToWardCouncilRecord } from '@/lib/wardCouncilFirestore';
 import { WardCouncilContent } from '@/components/WardCouncilContent';
 import { councilSecondary } from '@/components/WardCouncilForms';
-import { hasCouncilAccess } from '@/lib/auth';
+import { hasWardCouncilAccess } from '@/lib/auth';
 import { formatDate } from '@/lib/utils';
 import { councilLocalMode } from '@/lib/wardCouncilLocal';
 
@@ -14,7 +14,7 @@ export default function WardCouncilView() {
   const [record, setRecord] = useState<WardCouncilRecord | null>(null);
   const [error, setError] = useState('');
   useEffect(() => {
-    if (!hasCouncilAccess()) { navigate('/'); return; }
+    if (!hasWardCouncilAccess()) { navigate('/'); return; }
     return subscribeToWardCouncilRecord(id, data => { setRecord(data); if (!data) setError('Ata não encontrada.'); }, () => setError('Não foi possível carregar a ata. Recarregue para tentar novamente.'));
   }, [id, navigate]);
   return <main className="min-h-screen bg-teal-50 px-4 py-8"><div className="mx-auto max-w-5xl space-y-6">

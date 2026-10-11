@@ -1,6 +1,6 @@
 /**
  * Página de Histórico - Consulta de Atas de Conselho de Ala Anteriores
- * PIN administrativo obrigatório para criar ou excluir atas.
+ * PIN Sacramental para criar; PIN administrativo para excluir atas.
  */
 
 import { useState, useEffect } from 'react';
@@ -12,7 +12,7 @@ import { Eye, Trash2, Search, FileText, ArrowLeft, Edit, CheckCircle2, Plus } fr
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { formatDate } from '@/lib/utils';
-import { isAuthenticated, AUTH_CONFIG } from '@/lib/auth';
+import { hasWardCouncilAccess } from '@/lib/auth';
 import { councilLocalMode } from '@/lib/wardCouncilLocal';
 import { 
   getAllWardCouncilRecordsFromCloud, 
@@ -33,7 +33,7 @@ export default function WardCouncilHistory() {
 
   useEffect(() => {
     // Verificar autenticação
-    if (!isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY) && !isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) {
+    if (!hasWardCouncilAccess()) {
       setLocation('/');
       return;
     }
@@ -156,7 +156,7 @@ export default function WardCouncilHistory() {
               className="bg-white border-2 border-amber-500 text-teal-800 hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95 font-semibold flex items-center gap-2"
             >
               <Plus size={18} />
-              Nova Ata (PIN)
+              Nova Ata (PIN Sacramental)
             </Button>
           </div>
           

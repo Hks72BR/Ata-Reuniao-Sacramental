@@ -3,12 +3,12 @@ import { db } from './firebase';
 import type { WardCouncilRecord, WardCouncilPresence, CouncilActionUpdate } from '@/types';
 import { applyCouncilMutation, applyCouncilActionUpdate, newCouncilRecord, type CouncilMutation } from './wardCouncilWorkflow';
 import { councilLocalMode, readLocalCouncilRecords, writeLocalCouncilRecords, subscribeLocalCouncil, mutateLocalCouncil } from './wardCouncilLocal';
-import { AUTH_CONFIG, hasCouncilAccess, isAuthenticated } from './auth';
+import { AUTH_CONFIG, hasWardCouncilAccess, isAuthenticated } from './auth';
 
 const COLLECTION_NAME = 'atas-conselho-ala';
 
 function assertAccess() {
-  if (!hasCouncilAccess()) throw new Error('Sua sessão expirou. Entre novamente no conselho de ala.');
+  if (!hasWardCouncilAccess()) throw new Error('Sua sessão expirou. Entre novamente no conselho de ala.');
 }
 
 function normalizeRecord(id: string, data: Record<string, unknown>): WardCouncilRecord {
@@ -40,6 +40,9 @@ export function subscribeToCouncilRecords(callback: (records: WardCouncilRecord[
 
 export async function createBlankWardCouncilRecord(): Promise<string> {
   assertAccess();
+  if (!isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) {
+    throw new Error('Para criar uma ata, entre com o PIN Sacramental do Bispado.');
+  }
   const id = `ata-${crypto.randomUUID()}`;
   const record = newCouncilRecord(id);
   if (councilLocalMode) await mutateLocalCouncil(() => writeLocalCouncilRecords([...readLocalCouncilRecords(), record]));

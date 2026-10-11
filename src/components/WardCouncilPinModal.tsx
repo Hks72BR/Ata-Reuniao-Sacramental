@@ -235,7 +235,7 @@ export function WardCouncilPinModal({
                 )}
                 {!error && (
                   <div className="text-purple-700 text-xs text-center">
-                    💡 Use seu PIN de Sacramental (criar) ou Ward Council (editar)
+                    💡 Use o PIN do Conselho para participar ou o PIN Sacramental do Bispado para gerenciar.
                   </div>
                 )}
               </div>
@@ -243,9 +243,9 @@ export function WardCouncilPinModal({
               {/* Info Box */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
                 <p className="text-purple-900 text-xs font-['Poppins'] leading-relaxed">
-                  <strong>📌 PIN Sacramental:</strong> Cria nova ata de Conselho de Ala
+                  <strong>📌 PIN Sacramental (Bispado):</strong> Cria, finaliza, reabre e gerencia atas
                   <br />
-                  <strong>📌 PIN Ward Council:</strong> Edita atas existentes
+                  <strong>📌 PIN do Conselho (Líderes):</strong> Consulta o histórico e participa das atas existentes
                 </p>
               </div>
 

@@ -5,7 +5,7 @@ import type { WardCouncilRecord } from '@/types';
 import { WardCouncilUserModal } from '@/components/WardCouncilUserModal';
 import { CouncilActionForm, CouncilAgendaForm, CouncilMetadataForm, CouncilProgressForm, CouncilField, councilButton, councilSecondary } from '@/components/WardCouncilForms';
 import { WardCouncilContent, type CouncilEditor } from '@/components/WardCouncilContent';
-import { AUTH_CONFIG, getRemainingAttempts, hasCouncilAccess, isAuthenticated, isLockedOut, login, recordLoginAttempt, matchesConfiguredPin } from '@/lib/auth';
+import { AUTH_CONFIG, getRemainingAttempts, hasWardCouncilAccess, isAuthenticated, isLockedOut, login, recordLoginAttempt, matchesConfiguredPin } from '@/lib/auth';
 import { mutateCouncilRecord, recordCouncilActionUpdate, removeEditorPresence, subscribeToCouncilRecords, subscribeToWardCouncilRecord, updateEditorPresence } from '@/lib/wardCouncilFirestore';
 import { councilLocalMode } from '@/lib/wardCouncilLocal';
 import type { CouncilMutation } from '@/lib/wardCouncilWorkflow';
@@ -32,7 +32,7 @@ export default function WardCouncilEdit() {
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!hasCouncilAccess()) { navigate('/'); return; }
+    if (!hasWardCouncilAccess()) { navigate('/'); return; }
     setError('');
     return subscribeToWardCouncilRecord(id, data => {
       if (!data) { setError('Ata não encontrada. Volte ao histórico.'); return; }
@@ -41,7 +41,7 @@ export default function WardCouncilEdit() {
   }, [id, navigate]);
 
   useEffect(() => {
-    if (!hasCouncilAccess()) return;
+    if (!hasWardCouncilAccess()) return;
     return subscribeToCouncilRecords(data => { setRecords(data); setPreviousLoading(false); setPreviousError(''); }, () => {
       setPreviousLoading(false); setPreviousError('Não foi possível carregar as designações anteriores. Recarregue a página para tentar novamente.');
     });
@@ -110,8 +110,8 @@ export default function WardCouncilEdit() {
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-4 text-sm"><div><strong>{record.status === 'draft' ? 'Em preparação' : 'Ata finalizada'}</strong><p className="text-slate-600">{userName || 'Identifique-se para editar'} · {online ? 'Conectado' : 'Sem conexão — aguarde para salvar'}</p>{otherEditors.length > 0 && <p className="text-teal-700">Também nesta ata: {otherEditors.map(entry => entry.userName).join(', ')}</p>}</div>
           <div role="status">{busy ? 'Salvando…' : editor ? 'Formulário aberto — salve ao terminar' : 'Nenhum formulário pendente'}</div>
         </div>
-        {!canManage && <div className="rounded-lg bg-slate-100 p-4 text-sm"><p>O acesso do bispado permite selecionar e ordenar a pauta, finalizar e reabrir a ata.</p><button className={`${councilSecondary} mt-2`} onClick={() => setShowAccess(value => !value)}>Acesso do bispado</button>
-          {showAccess && <form className="mt-3 flex max-w-sm flex-col gap-2" onSubmit={e => { e.preventDefault(); unlock(); }}><CouncilField label="PIN do bispado" type="password" value={pin} onChange={setPin} required /><button className={councilButton}>Liberar organização da pauta</button>{accessError && <p role="alert" className="text-red-700">{accessError}</p>}</form>}
+        {!canManage && <div className="rounded-lg bg-slate-100 p-4 text-sm"><p>O PIN do Conselho permite consultar e participar da ata. Somente o PIN Sacramental do Bispado permite selecionar e ordenar a pauta, finalizar e reabrir a ata.</p><button className={`${councilSecondary} mt-2`} onClick={() => setShowAccess(value => !value)}>Acesso do bispado</button>
+          {showAccess && <form className="mt-3 flex max-w-sm flex-col gap-2" onSubmit={e => { e.preventDefault(); unlock(); }}><CouncilField label="PIN Sacramental do Bispado" type="password" value={pin} onChange={setPin} required /><button className={councilButton}>Liberar gerenciamento da ata</button>{accessError && <p role="alert" className="text-red-700">{accessError}</p>}</form>}
         </div>}
         {record.status !== 'draft' && <p className="rounded-lg bg-teal-100 p-4 text-sm">O conteúdo desta reunião está finalizado. Os retornos das designações podem ser registrados em uma nova reunião.{canManage && <button className={`${councilSecondary} ml-2`} disabled={busy} onClick={() => void runMutation({ type: 'reopen' })}>Reabrir ata</button>}</p>}
         <div ref={formRef} className="scroll-mt-4">
