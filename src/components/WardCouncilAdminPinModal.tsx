@@ -76,19 +76,21 @@ export function WardCouncilAdminPinModal({
   };
 
   const checkPin = (enteredPin: string) => {
-    const locked = isLockedOut();
+    const locked = action === 'create' ? isLockedOut() : { locked: false };
     if (locked.locked) {
       setError(`Aguarde ${locked.remainingTime} minuto(s) para tentar novamente.`);
       return;
     }
     const configuredPin = action === 'create' ? AUTH_CONFIG.SACRAMENTAL_PIN : AUTH_CONFIG.WARD_COUNCIL_ADMIN_PIN;
     if (matchesConfiguredPin(enteredPin, configuredPin)) {
-      recordLoginAttempt(true);
-      if (action === 'create') login(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY, AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
+      if (action === 'create') {
+        recordLoginAttempt(true);
+        login(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY, AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
+      }
       onSuccess();
     } else {
-      recordLoginAttempt(false);
-      setError(`PIN incorreto! Tentativas restantes: ${getRemainingAttempts()}.`);
+      if (action === 'create') recordLoginAttempt(false);
+      setError(action === 'create' ? `PIN incorreto! Tentativas restantes: ${getRemainingAttempts()}.` : 'PIN incorreto! Acesso negado.');
       setIsShaking(true);
       setPin(['', '', '', '']);
       setTimeout(() => setIsShaking(false), 500);
