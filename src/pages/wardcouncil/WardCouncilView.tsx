@@ -27,7 +27,7 @@ export default function WardCouncilView() {
     setRecord(null);
     setError('');
     return subscribeToWardCouncilRecord(id, data => { setRecord(data); if (!data) setError('Ata não encontrada.'); }, () => setError('Não foi possível carregar a ata. Recarregue para tentar novamente.'));
-  }, [id, authorized]);
+  }, [id, location, authorized]);
 
   const share = async () => {
     const link = new URL(`/wardcouncil/shared/${encodeURIComponent(id)}`, window.location.origin).href;
