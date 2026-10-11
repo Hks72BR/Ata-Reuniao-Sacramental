@@ -112,6 +112,11 @@ export function PinAuthModal({
   };
 
   const checkPin = (enteredPin: string) => {
+    const lockout = isLockedOut();
+    if (lockout.locked) {
+      setLockoutInfo(lockout);
+      return;
+    }
     if (matchesConfiguredPin(enteredPin, correctPin)) {
       // PIN correto - registrar sucesso e fazer login
       recordLoginAttempt(true);

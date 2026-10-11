@@ -15,12 +15,13 @@ export default function WardCouncilHome() {
   return <main className="min-h-screen bg-teal-50 px-4 py-16"><section className="mx-auto max-w-xl space-y-5 rounded-xl bg-white p-8 shadow-sm">
     <h1 className="text-3xl font-bold text-teal-950">Nova reunião de conselho de ala</h1>
     <p className="text-slate-600">Prepare a pauta, registre decisões e acompanhe as designações anteriores em uma única ata.</p>
+    <p className="text-sm text-slate-600">Criar uma ata exige o PIN Sacramental do Bispado. Com o PIN do Conselho, acesse o histórico para consultar e participar das atas existentes.</p>
     {councilLocalMode && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Teste local: ao criar a reunião você entra como bispado de teste. Os dados do conselho ficam somente neste navegador.</p>}
     {error && <p role="alert" className="text-red-700">{error}</p>}
     <div className="flex flex-wrap gap-3"><button className={councilButton} disabled={creating} onClick={async () => {
       if (creating) return;
       if (councilLocalMode) login(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY, AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
-      if (!isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) return;
+      if (!isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY)) { setError('Para criar uma ata, entre com o PIN Sacramental do Bispado.'); return; }
       setCreating(true); setError('');
       try { const id = await createBlankWardCouncilRecord(); navigate(`/wardcouncil/edit/${id}`); }
       catch { setError('Não foi possível criar a ata. Tente novamente.'); setCreating(false); }

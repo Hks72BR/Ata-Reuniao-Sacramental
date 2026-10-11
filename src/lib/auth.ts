@@ -222,9 +222,11 @@ export function login(sessionKey: string, timestampKey: string): void {
   updateSessionTimestamp(timestampKey);
 }
 
-export function hasCouncilAccess(): boolean {
+export function hasWardCouncilAccess(): boolean {
   return isAuthenticated(AUTH_CONFIG.WARD_COUNCIL_SESSION_KEY) || isAuthenticated(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY);
 }
+
+export const hasCouncilAccess = hasWardCouncilAccess;
 
 /**
  * Validar PIN de Exclusão

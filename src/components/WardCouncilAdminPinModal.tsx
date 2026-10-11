@@ -1,12 +1,12 @@
 /**
  * Modal de PIN Administrativo - Conselho de Ala
- * PIN administrativo configurado no ambiente para criar e excluir atas.
+ * PIN Sacramental para criar; PIN administrativo para excluir atas.
  */
 
 import { useState, useEffect } from 'react';
 import { X, Lock, Shield } from 'lucide-react';
 
-import { AUTH_CONFIG, matchesConfiguredPin } from '@/lib/auth';
+import { AUTH_CONFIG, matchesConfiguredPin, isLockedOut, recordLoginAttempt, getRemainingAttempts, login } from '@/lib/auth';
 
 interface WardCouncilAdminPinModalProps {
   isOpen: boolean;
@@ -76,10 +76,21 @@ export function WardCouncilAdminPinModal({
   };
 
   const checkPin = (enteredPin: string) => {
-    if (matchesConfiguredPin(enteredPin, AUTH_CONFIG.WARD_COUNCIL_ADMIN_PIN)) {
+    const locked = action === 'create' ? isLockedOut() : { locked: false };
+    if (locked.locked) {
+      setError(`Aguarde ${locked.remainingTime} minuto(s) para tentar novamente.`);
+      return;
+    }
+    const configuredPin = action === 'create' ? AUTH_CONFIG.SACRAMENTAL_PIN : AUTH_CONFIG.WARD_COUNCIL_ADMIN_PIN;
+    if (matchesConfiguredPin(enteredPin, configuredPin)) {
+      if (action === 'create') {
+        recordLoginAttempt(true);
+        login(AUTH_CONFIG.SACRAMENTAL_SESSION_KEY, AUTH_CONFIG.SACRAMENTAL_TIMESTAMP_KEY);
+      }
       onSuccess();
     } else {
-      setError('PIN incorreto! Acesso negado.');
+      if (action === 'create') recordLoginAttempt(false);
+      setError(action === 'create' ? `PIN incorreto! Tentativas restantes: ${getRemainingAttempts()}.` : 'PIN incorreto! Acesso negado.');
       setIsShaking(true);
       setPin(['', '', '', '']);
       setTimeout(() => setIsShaking(false), 500);
@@ -96,7 +107,7 @@ export function WardCouncilAdminPinModal({
   const title = isDelete ? 'Confirmar Exclusão' : 'Criar Nova Ata';
   const description = isDelete
     ? 'Digite o PIN administrativo para excluir esta ata'
-    : 'Digite o PIN administrativo para criar uma nova ata';
+    : 'Digite o PIN Sacramental do Bispado para criar uma nova ata';
   const borderColor = isDelete ? 'border-red-200' : 'border-amber-200';
   const headerBg = isDelete ? 'bg-red-50' : 'bg-amber-50';
   const iconBg = isDelete ? 'bg-red-100' : 'bg-amber-100';
@@ -137,7 +148,7 @@ export function WardCouncilAdminPinModal({
 
           <div className="text-center mb-6">
             <Lock className={`w-12 h-12 mx-auto mb-3 ${iconColor}`} />
-            <p className="text-gray-600 text-sm">PIN Administrativo (4 dígitos)</p>
+            <p className="text-gray-600 text-sm">{isDelete ? 'PIN Administrativo' : 'PIN Sacramental do Bispado'} (4 dígitos)</p>
           </div>
 
           {/* PIN Inputs */}
